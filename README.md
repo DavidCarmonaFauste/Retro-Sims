@@ -38,6 +38,11 @@ Las mecánicas principales del juego son:
   a través de un ordenador colocado en tu casa.
   Cada objeto ocupa un número determinado de casillas y no se puede superponer con otros muebles.
   
+    <img src="Readme-Images/plano.jpg" width="200" >
+      
+      Ejemplo de plano de la casa del jugador.
+  
+  
 4. Necesidades de tu Sim
   Tu sim tiene unas necesidades básicas que debe suplir para sobrevivir. Estas son:
   - Alimentarse. Para alimentar a tu sim necesitas una nevera de donde coger los alimentos (que cuestan dinero).
