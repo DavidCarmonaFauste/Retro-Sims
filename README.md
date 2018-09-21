@@ -1,6 +1,6 @@
 # RetroSims
 ### David Carmona Fauste y Mario Tabasco Vargas
-![](Readme-Images/AE.png)
+<img src="Readme-Images/AE.png" width="200" >
 
 ### Descripción
 RetroSims es una adaptación de Los Sims a una
@@ -37,7 +37,6 @@ Las mecánicas principales del juego son:
   Tu casa ya viene amueblada cuando la compras, pero si quieres más muebles tendrás que comprarlos 
   a través de un ordenador colocado en tu casa.
   Cada objeto ocupa un número determinado de casillas y no se puede superponer con otros muebles.
-  ![](Readme-Images/plano.jpg)
   
 4. Necesidades de tu Sim
   Tu sim tiene unas necesidades básicas que debe suplir para sobrevivir. Estas son:
