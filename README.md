@@ -1,6 +1,13 @@
-# RetroSims
-### David Carmona Fauste y Mario Tabasco Vargas
-<img src="Readme-Images/AE.png" width="200" >
+## RetroSims
+<p align="center">
+  <img width="200" src="Readme-Images/AE.png">
+</p>
+<p align="center"> 
+<b>
+ David Carmona Fauste y Mario Tabasco Vargas
+</b
+</p>
+
 
 ### Descripción
 RetroSims es una adaptación de Los Sims a una
