@@ -1,13 +1,21 @@
 ## RetroSims
 <p align="center">
-  <img width="200" src="Readme-Images/AE.png">
+  <img width="479" height="270" src="Readme-Images/retrosimsLogo.png">
 </p>
 <p align="center"> 
 <b>
  David Carmona Fauste y Mario Tabasco Vargas
 </b
 </p>
+<p align="center">
+  <img width="100" src="Readme-Images/AE.png">
+</p>
 
+### Índice
+1. [Descripción](#descripción)
+2. [Mecánicas](#mecánicas)
+3. [Aspecto visual](#aspecto-visual)
+4. [Clases](#clases)
 
 ### Descripción
 RetroSims es una adaptación de Los Sims a una
@@ -49,7 +57,7 @@ Las mecánicas principales del juego son:
       a través de un ordenador colocado en tu casa.
       Cada objeto ocupa un número determinado de casillas y no se puede superponer con otros muebles.
   
-      <img src="Readme-Images/plano.jpg" width="200" >
+      <img src="Readme-Images/HouseVisualPrototype.png" width="479" height="400" >
       
       Ejemplo de plano de la casa del jugador.
   
@@ -67,3 +75,12 @@ Las mecánicas principales del juego son:
       Las interacciones, tanto con objetos como con otros sims, son en forma de menús. 
       Para interactuar con ellos tienes que acercarte y pulsar el botón de Interactuar, se te desplegará
       un menú con las opciones disponibles para interactuar con ese sim/objeto.
+
+## Aspecto visual
+Usamos sprites sencillos de 8x8 píxeles para darle una estética retro al juego.
+<p align="left">
+  <img width="240" height='256' src="Readme-Images/Sim2.png"> <img width="240" height='256' src="Readme-Images/Sim3.png">
+</p>
+
+## Clases
+Puedes ver la estructura de clases que estamos utilizando [aquí](https://github.com/DavidCarmonaFauste/Retro-Sims/blob/master/Classes.md).
