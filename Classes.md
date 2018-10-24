@@ -21,9 +21,9 @@
           3.Charisma 
       >- Job
     * Furniture
-      + Wall
-      + Not Interactive
-      + Interactive (bed, door, fridge, toilet)
+      + Interactive (bool)
+      + Type (bed, door, fridge, toilet)
+      + Name (bed1, bed2, fridge1)
 - User Interface
   - Text Box
        > Properties
