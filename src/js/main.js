@@ -25,7 +25,11 @@ var PreloaderScene = {
     // TODO: load here the assets for the game
     this.game.load.image('logo', 'images/logo_b.png'); //Logotipo del juego
     this.game.load.image('devLogo', 'images/AE.png'); //Logotipo del equipo de des.
-    this.game.load.image('paredTop', 'images/Pared0_Top.png');
+      this.game.load.image('paredTop', 'images/Pared0_Top.png');
+      for (var i = 11; i <= 10; i++)
+          this.game.load.image('Sim' + i, 'images/Sim' + i +'.png');
+
+    
   },
 
   create: function () {
