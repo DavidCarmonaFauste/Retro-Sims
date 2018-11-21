@@ -6,11 +6,12 @@
 
 //Función principal
 var PlayScene = {
-  create: function () {
+  create: function (data) {
     //var logo = this.game.add.sprite(
     //this.game.world.centerX, this.game.world.centerY, 'logo');
     //logo.anchor.setTo(0.5, 0.5);
 
+    var player = new Player(0, 0, 0, 2, 2, 2, 20000, 'desempleado', 1, 1, data.player, this.game)
     var vecino = new Neighbour(0, 'logo', this.game);
     console.log(vecino.x + ' ' + vecino.y);
   }

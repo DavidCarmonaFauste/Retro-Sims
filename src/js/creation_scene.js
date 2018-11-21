@@ -1,10 +1,12 @@
 'use strict';
 
 var character;
+var election;
 
 var CreationScene = {
 
     create: function () {
+        election = 1;
         character = [];
         for (var i = 1; i < 11; i++) {
             character[i] = this.game.add.sprite(
@@ -16,17 +18,23 @@ var CreationScene = {
     },
 
     update: function () {
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && election < 10) {
             for (var i = 1; i < 11; i++) {
                 character[i].x -= 150;
             }
+            election ++;
             this.game.input.keyboard.reset(true);
         }
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT)) {
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && election > 1) {
             for (var i = 1; i < 11; i++) {
                 character[i].x += 150;
             }
+            election--;
             this.game.input.keyboard.reset(true);
+        }
+        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+            console.log('sprite = ' + election);
+            this.game.state.start('play',{player:character[election]});
         }
     }
 };
