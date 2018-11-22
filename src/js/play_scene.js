@@ -7,23 +7,23 @@ var Player = require('./Player');
 
 //Función principal
 var PlayScene = {
+  player: null,
 
-  create: function (player) {
-
-    //this.game.add.Player(player);
-
-
-    var player = new Player(
-      this.game, 'sim1',
+  init: function (data) {
+    console.log(data.sprite);
+    this.player = new Player(
+      this.game, data.sprite,
       this.game.world.centerX, this.game.world.centerX,
       'jugador', 10, 10, 10);
+  },
 
-    this.physics.arcade.enable(player);
-    this.camera.follow(player);
-    player.body.collideWorldBounds = true;
+  create: function () {
+    
+    console.log('create');
 
-
-    console.log(player.sprite);
+    this.physics.arcade.enable(this.player);
+    this.camera.follow(this.player);
+    this.player.body.collideWorldBounds = true;
   }
 };
 

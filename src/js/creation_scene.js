@@ -4,11 +4,13 @@ var Player = require('./Player');
 var CreationScene = {
     character: null,
     election: null,
+    params: null,
 
 
     create: function () {
         this.character = [];
         this.election = 1;
+        this.params = {};
 
         for (var i = 1; i < 11; i++) {
             this.character[i] = this.game.add.sprite(
@@ -41,14 +43,16 @@ var CreationScene = {
             this.game.input.keyboard.reset(true);
         }
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            var player = new Player(
-                this.game, this.character[this.election].key,
-                this.game.world.centerX, this.game.world.centerX,
-                'jugador', 10, 10, 10);
+            // var newPlayer = new Player(
+            //     this.game, this.character[this.election].key,
+            //     this.game.world.centerX, this.game.world.centerX,
+            //     'jugador', 10, 10, 10);
 
-               // this.game.state.states['play'].player = this.player;
+            this.params.sprite = this.character[this.election].key;
 
-            this.game.state.start('play');
+            console.log(this.params);
+
+            this.game.state.start('play', true, true, this.params);
         }
     }
 };
