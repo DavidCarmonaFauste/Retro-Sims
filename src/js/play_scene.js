@@ -3,6 +3,7 @@
 //requires de las clases
 var Neighbour = require('./Neighbour');
 var Player = require('./Player');
+var Map = require('./Map');
 
 
 //Función principal
