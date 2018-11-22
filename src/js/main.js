@@ -26,9 +26,10 @@ var PreloaderScene = {
     this.game.load.image('logo', 'images/logo_b.png'); //Logotipo del juego
     this.game.load.image('devLogo', 'images/AE.png'); //Logotipo del equipo de des.
     this.game.load.image('paredTop', 'images/Pared0_Top.png');
-    for (var i = 1; i <= 10; i++)
-      this.game.load.image('Sim' + i, 'images/Sim' + i + '.png');
-
+    for (var i = 1; i <= 10; i++) //Los sprites de los sims
+      this.game.load.image('sim' + i, 'images/sims/Sim' + i + '.png');
+    this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png',20,32);
+    this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
 
   },
 
