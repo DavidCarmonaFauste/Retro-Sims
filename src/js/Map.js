@@ -1,6 +1,6 @@
 function Map(nCols, nRows, width, height, nNeighbours) {
-    this.nCols = nCols; //Num. de columnas de la matriz del mapa
-    this.nRows = nRows; //Num. de filas de la matriz del mapa
+    this.nCols = 10; //Num. de columnas de la matriz del mapa
+    this.nRows = 10; //Num. de filas de la matriz del mapa
     this.width = width; //Ancho del mapa
     this.height = height; //Alto del mapa
     this.nNeighbours = nNeighbours; //Num. de vecinos en el mapa
@@ -19,9 +19,18 @@ Map.prototype.initialize = function(){
 
     //Inicializa la matriz de muebles
     for(var i = 0; i < this.nRows; i++){
-        house[i] = [];
-        for(var j = 0; j < this.nNeighbours; j++){
-            //house[i][j] = ;
+        this.house[i] = [];
+        for(var j = 0; j < this.nCols; j++){
+            this.house[i][j] = false;
+        }
+    }
+
+    this.house[1,1] = true;
+
+    for(var i = 0; i < this.nRows; i++){
+        for(var j = 0; j < this.nCols; j++){
+            if(this.house[i][j])
+            this.game.add.sprite(i * 10, j*10, 'paredTop');
         }
     }
 }
@@ -29,7 +38,7 @@ Map.prototype.initialize = function(){
 
 //Devuelve el furni que se encuentra en la posición (X, Y)
 Map.prototype.getFurniAt = function(x, y){
-
+    return house[x,y];
 }
 
 
