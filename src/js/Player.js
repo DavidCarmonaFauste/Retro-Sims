@@ -20,7 +20,7 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
   this.sprite = sprite; //temporal
   this.name = name;
 
-
+  this.active = true; //indica si el player se puede mover (no está en modo edición/conversación...)
   this.speed = 4; //velocidad de movimiento
 
   //Animaciones
@@ -42,7 +42,8 @@ Player.prototype.constructor = Player;
 
 //Métodos
 Player.prototype.update = function() {
-  this.move();
+  if(this.active)
+    this.move();
 };
 
 Player.prototype.move = function() {

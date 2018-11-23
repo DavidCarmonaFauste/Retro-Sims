@@ -11,8 +11,19 @@ var CreationScene = {
     create: function () {
         this.skins = [];
         this.skinIndex = 1;
-        this.params = {}; //JSON.parse(this.game.cache.getText('playerData'));
+        this.params = {};
 
+        var txt = this.game.add.text( this.game.world.centerX, this.game.world.centerY - 200, 'Choose your appearance', {
+            font: '30px Arial',
+            fill: '#0F0',
+            align: 'center'
+        });
+        txt.anchor.setTo(0.5,0.5);
+
+        var graySquare = this.game.add.image(
+            0, this.game.world.centerY, 'paredTop');
+        graySquare.anchor.setTo(0.5, 0.5);
+        graySquare.scale.setTo(70, 5);
 
         for (var i = 1; i < 11; i++) {
             this.skins[i] = this.game.add.sprite(
@@ -25,6 +36,8 @@ var CreationScene = {
             this.game.world.centerX, this.game.world.centerY - 125, 'arrow');
         arrow.anchor.setTo(0.5, 0.5);
         arrow.scale.setTo(0.25, 0.25);
+
+
 
         return this.skins;
     },
