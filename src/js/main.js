@@ -22,15 +22,17 @@ var PreloaderScene = {
     this.loadingBar.anchor.setTo(0, 0.5);
     this.load.setPreloadSprite(this.loadingBar);
 
-    // TODO: load here the assets for the game
+    // Carga de imágenes
     this.game.load.image('logo', 'images/logo_b.png'); //Logotipo del juego
     this.game.load.image('devLogo', 'images/AE.png'); //Logotipo del equipo de des.
     this.game.load.image('paredTop', 'images/Pared0_Top.png');
     for (var i = 1; i <= 10; i++) //Los sprites de los sims
       this.game.load.image('sim' + i, 'images/sims/Sim' + i + '.png');
-    this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png',20,32);
+    this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
 
+    // Carga de archivos
+    this.load.text('playerData', 'data/playerData.json');
   },
 
   create: function () {
