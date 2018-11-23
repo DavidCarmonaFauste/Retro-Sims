@@ -38,6 +38,8 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
 Player.prototype = Object.create(Phaser.Sprite.prototype);
 Player.prototype.constructor = Player;
 
+
+//Métodos
 Player.prototype.update = function() {
   this.move();
 };

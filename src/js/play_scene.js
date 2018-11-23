@@ -18,9 +18,6 @@ var PlayScene = {
   },
 
   create: function () {
-    
-    console.log('create: '+this.params);
-
     this.player = new Player(
       this.game, 'sim' + this.params.simIndex,
       this.game.world.centerX, this.game.world.centerX,
