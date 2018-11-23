@@ -15,9 +15,9 @@ var PlayScene = {
   init: function () {
     var background = this.game.add.image(
       0, 0, 'background');
+    //background.scale.setTo(this.game.world.width, this.game.world.height);
 
-    //Recibe los datos del jugador guardados en localStorage
-    this.playerData = localStorage.getItem("playerData"); 
+    this.playerData = localStorage.getItem("playerData"); //Recibe los datos del jugador guardados en localStorage
     this.params = JSON.parse(this.playerData);
     console.log(this.params);
   },

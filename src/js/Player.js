@@ -43,22 +43,22 @@ Player.prototype.constructor = Player;
 
 //Métodos
 Player.prototype.update = function() {
-  if(this.active) //Comprueba que player no está en modo edición/conversación
+  if(this.active)
     this.move();
 };
 
 Player.prototype.move = function() {
-  if(this.controls.up.isDown){  //UP
-    //this.animations.play('up');
+  if(this.controls.up.isDown){
+    //this.animations.play('run');
     this.y -= this.speed;
-  } else if(this.controls.down.isDown){ //DOWN
-    //this.animations.play('down');
+  } else if(this.controls.down.isDown){
+    //this.animations.play('run');
     this.y += this.speed;
-  } else if (this.controls.left.isDown){ //LEFT
-    //this.animations.play('left');
+  } else if (this.controls.left.isDown){
+    //this.animations.play('run');
     this.x -= this.speed;
-  } else if (this.controls.right.isDown){ //RIGHT
-    //this.animations.play('right');
+  } else if (this.controls.right.isDown){
+    //this.animations.play('run');
     this.x += this.speed;
   }
 }
