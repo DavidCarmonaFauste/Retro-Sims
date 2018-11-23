@@ -18,7 +18,7 @@ var CreationScene = {
             this.skins[i] = this.game.add.sprite(
                 this.game.world.centerX + (i - 1) * 150, this.game.world.centerY, 'sim' + i);
             this.skins[i].anchor.setTo(0.5, 0.5);
-            this.skins[i].scale.setTo(4, 4);
+            this.skins[i].scale.setTo(0.5, 0.5);
         }
 
         var arrow = this.game.add.image(

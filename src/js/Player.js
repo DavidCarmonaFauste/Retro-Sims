@@ -2,6 +2,7 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
   Phaser.Sprite.call(this, game, x, y, sprite);
 
   this.anchor.setTo(0.5, 0.5);
+  this.scale.setTo(0.25,0.25);
 
 
   this.needs = {
