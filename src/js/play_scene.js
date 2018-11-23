@@ -8,6 +8,7 @@ var Map = require('./Map');
 
 //Función principal
 var PlayScene = {
+  map:null,
   player: null,
   params: null,
   arrow: null,
@@ -36,6 +37,10 @@ var PlayScene = {
     this.physics.arcade.enable(this.player);
     this.camera.follow(this.player);
     this.player.body.collideWorldBounds = true;
+
+    this.map = new Map(10,10,800,600,3);
+
+    
   }
 };
 
