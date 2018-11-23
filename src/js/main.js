@@ -32,8 +32,6 @@ var PreloaderScene = {
     this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
 
-    // Carga de archivos
-    this.load.text('playerData', 'data/playerData.json');
   },
 
   create: function () {
