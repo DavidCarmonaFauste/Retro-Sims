@@ -33,6 +33,7 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
     down: game.input.keyboard.addKey(Phaser.Keyboard.DOWN),
   };
 
+
   game.add.existing(this); //añadir el sprite al game
 }
 

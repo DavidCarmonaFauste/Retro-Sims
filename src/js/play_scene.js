@@ -10,6 +10,7 @@ var Map = require('./Map');
 var PlayScene = {
   player: null,
   params: null,
+  arrow: null,
 
   init: function () {
     var background = this.game.add.image(
@@ -26,6 +27,11 @@ var PlayScene = {
       this.game, 'sim' + this.params.simIndex,
       this.game.world.centerX, this.game.world.centerX,
       'jugador', 10, 10, 10);
+
+    this.arrow = this.player.addChild(this.game.make.sprite(0, -250, 'arrow'));
+    this.arrow.anchor.setTo(0.5,0.5);
+    this.arrow.scale.setTo(0.5,0.5);
+
 
     this.physics.arcade.enable(this.player);
     this.camera.follow(this.player);
