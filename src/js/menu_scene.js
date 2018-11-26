@@ -2,6 +2,11 @@
 
 var MenuScene = {
     create: function () {
+        //Reproducir el main theme
+        this.game.theme.loop = true; //loop
+        this.game.theme.volume = 0.075; //volumen
+        this.game.theme.play();
+
         var logo = this.game.add.sprite(
             this.game.world.centerX, this.game.world.centerY - 90, 'logo');
         logo.anchor.setTo(0.5, 0.5);
@@ -12,6 +17,7 @@ var MenuScene = {
             this.game.world.centerX, this.game.world.centerY + 120,
             550, 70,
             function () {
+                this.game.tap.play();
                 this.game.state.start('characterCreation');
             }
         )
