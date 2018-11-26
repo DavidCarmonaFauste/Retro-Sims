@@ -10,7 +10,7 @@ var MenuScene = {
         //botón para ir a crear personaje
         addButton(this.game, 'Create a character',
             this.game.world.centerX, this.game.world.centerY + 120,
-            300, 70,
+            550, 70,
             function () {
                 this.game.state.start('characterCreation');
             }
@@ -30,12 +30,9 @@ function addButton(game, string, x, y, w, h, callback) {
     button.width = w;
     button.height = h;
 
-    var txt = game.add.text(button.x, button.y, string, {
-        font: '30px Arial',
-        fill: '#000',
-        align: 'center'
-    });
+    var txt = game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 40);
     txt.anchor.setTo(0.5, 0.5);
+    txt.align = "center";
 }
 
 

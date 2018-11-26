@@ -6,6 +6,7 @@ var CreationScene = {
     params: null,
     right: 1,
     left: -1,
+    txt: null,
 
 
     create: function () {
@@ -13,12 +14,9 @@ var CreationScene = {
         this.skinIndex = 1;
         this.params = {};
 
-        var txt = this.game.add.text( this.game.world.centerX, this.game.world.centerY - 200, 'Choose your appearance', {
-            font: '30px Arial',
-            fill: '#0F0',
-            align: 'center'
-        });
-        txt.anchor.setTo(0.5,0.5);
+        this.txt = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeWhiteFont', 'Choose your appearance', 40);
+        this.txt.anchor.setTo(0.5, 0.5);
+        this.txt.align = "center";
 
         var graySquare = this.game.add.image(
             0, this.game.world.centerY, 'paredTop');
