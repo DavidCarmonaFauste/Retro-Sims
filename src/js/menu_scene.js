@@ -2,6 +2,11 @@
 
 var MenuScene = {
     create: function () {
+        //Reproducir el main theme
+        this.game.theme.loop = true; //loop
+        this.game.theme.volume = 0.075; //volumen
+        this.game.theme.play();
+
         var logo = this.game.add.sprite(
             this.game.world.centerX, this.game.world.centerY - 90, 'logo');
         logo.anchor.setTo(0.5, 0.5);
@@ -10,8 +15,9 @@ var MenuScene = {
         //botón para ir a crear personaje
         addButton(this.game, 'Create a character',
             this.game.world.centerX, this.game.world.centerY + 120,
-            300, 70,
+            550, 70,
             function () {
+                this.game.tap.play();
                 this.game.state.start('characterCreation');
             }
         )
@@ -30,12 +36,9 @@ function addButton(game, string, x, y, w, h, callback) {
     button.width = w;
     button.height = h;
 
-    var txt = game.add.text(button.x, button.y, string, {
-        font: '30px Arial',
-        fill: '#000',
-        align: 'center'
-    });
+    var txt = game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 40);
     txt.anchor.setTo(0.5, 0.5);
+    txt.align = "center";
 }
 
 

@@ -6,6 +6,7 @@ var CreationScene = {
     params: null,
     right: 1,
     left: -1,
+    txt: null,
 
 
     create: function () {
@@ -13,12 +14,9 @@ var CreationScene = {
         this.skinIndex = 1;
         this.params = {};
 
-        var txt = this.game.add.text( this.game.world.centerX, this.game.world.centerY - 200, 'Choose your appearance', {
-            font: '30px Arial',
-            fill: '#0F0',
-            align: 'center'
-        });
-        txt.anchor.setTo(0.5,0.5);
+        this.txt = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeGreenFont', 'Choose your appearance', 40);
+        this.txt.anchor.setTo(0.5, 0.5);
+        this.txt.align = "center";
 
         var graySquare = this.game.add.image(
             0, this.game.world.centerY, 'paredTop');
@@ -46,15 +44,13 @@ var CreationScene = {
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
             move(this.game, this.skins, this.skinIndex, this.right);
             this.skinIndex++;
-        }
-
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
+        } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
             move(this.game, this.skins, this.skinIndex, this.left);
             this.skinIndex--;
         }
 
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            selection(this.game, this.params, this.skinIndex);
+            skinSelected(this.game, this.params, this.skinIndex);
         }
     },
 
@@ -64,6 +60,9 @@ var CreationScene = {
 //Métodos
 
 function move(game, skins, index, dir) { //dir: izq = -1, der = 1
+    var scroll = game.add.audio('scroll');
+    scroll.play();
+
     for (var i = 1; i < 11; i++) {
         skins[i].x -= 150 * dir;
     }
@@ -72,8 +71,16 @@ function move(game, skins, index, dir) { //dir: izq = -1, der = 1
 }
 
 
-function selection(game, params, index) {
+function skinSelected(game, params, index) {
+    game.select.play();
+    creationCompleted(game, params, index);
+}
+
+function creationCompleted(game, params, index) {
     params.simIndex = index;
+
+    var sound = game.add.audio('creationCompleted');
+    sound.play();
 
     localStorage.setItem("playerData", JSON.stringify(params));
 
