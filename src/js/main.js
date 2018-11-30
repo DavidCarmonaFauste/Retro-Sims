@@ -22,6 +22,9 @@ var PreloaderScene = {
     this.loadingBar.anchor.setTo(0, 0.5);
     this.load.setPreloadSprite(this.loadingBar);
 
+    // Carga tilemap
+    this.game.load.tilemap('mario', 'js/super_mario.json', null, Phaser.Tilemap.TILED_JSON);
+
     // Carga de imágenes
     this.game.load.image('logo', 'images/logo_b.png'); //Logotipo del juego
     this.game.load.image('devLogo', 'images/AE.png'); //Logotipo del equipo de des.
@@ -31,6 +34,7 @@ var PreloaderScene = {
       this.game.load.image('sim' + i, 'images/sims/Sim' + i + '.png');
     this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
+    this.game.load.image('tiles', 'images/super_mario.png');
 
     // Fuentes
     this.game.load.bitmapFont('arcadeWhiteFont', 'fonts/arcadebmfWhite.png', 'fonts/arcadebmf.xml');
@@ -42,7 +46,7 @@ var PreloaderScene = {
     this.game.load.audio('scroll', 'audio/scroll.wav');
     this.game.load.audio('select', 'audio/selection.wav');
     this.game.load.audio('creationCompleted', 'audio/creationCompleted.wav');
-    this.game.load.audio('mainTheme', 'audio/mainTheme.mp3')
+    this.game.load.audio('mainTheme', 'audio/mainTheme.mp3');
   },
 
   create: function () {

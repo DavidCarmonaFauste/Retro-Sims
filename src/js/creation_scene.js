@@ -29,7 +29,7 @@ var CreationScene = {
             this.skins[i].anchor.setTo(0.5, 0.5);
             this.skins[i].scale.setTo(0.5, 0.5);
         }
-
+        
         var arrow = this.game.add.image(
             this.game.world.centerX, this.game.world.centerY - 125, 'arrow');
         arrow.anchor.setTo(0.5, 0.5);

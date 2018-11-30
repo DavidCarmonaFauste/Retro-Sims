@@ -23,6 +23,9 @@ var PlayScene = {
   },
 
   create: function () {
+    this.Map = new Map(this.game,
+      20,10,800,600,0
+    )
     this.player = new Player(
       this.game, 'sim' + this.params.simIndex,
       this.game.world.centerX, this.game.world.centerX,
@@ -36,6 +39,16 @@ var PlayScene = {
     this.physics.arcade.enable(this.player);
     this.camera.follow(this.player);
     this.player.body.collideWorldBounds = true;
+
+
+    /*var map;
+    var layer;
+    map = this.game.add.tilemap('mario');
+    map.addTilesetImage('SuperMarioBros-World1-1', 'tiles');
+    layer = map.createLayer('World1');
+*/
+    
+
   }
 };
 
