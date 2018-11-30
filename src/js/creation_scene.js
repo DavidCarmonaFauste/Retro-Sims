@@ -27,7 +27,7 @@ var CreationScene = {
         graySquare.anchor.setTo(0.5, 0.5);
         graySquare.scale.setTo(70, 5);
 
-        for (var i = 1; i < 11; i++) {
+        for (var i = 1; i < this.numSkins; i++) {
             this.skins[i] = this.game.add.sprite(
                 this.game.world.centerX + (i - 1) * 150, this.game.world.centerY, 'sim' + i);
             this.skins[i].anchor.setTo(0.5, 0.5);
@@ -49,13 +49,16 @@ var CreationScene = {
 
 
     //Métodos
+    moveCamera: function(){
+
+    },
 
     checkInput: function () { // game, this.skins, this.skinIndex, params) {
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
-            this.move(this.right);
+            this.moveSkins(this.right);
             this.skinIndex++;
         } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
-            this.move(this.left);
+            this.moveSkins(this.left);
             this.skinIndex--;
         }
 
@@ -65,12 +68,12 @@ var CreationScene = {
 
     },
 
-    move: function (dir) {
+    moveSkins: function (dir) {
         //dir: izq = -1, der = 1
         var scroll = this.game.add.audio('scroll');
         scroll.play();
 
-        for (var i = 1; i < this.numSkins; i++) { // Cuidado con los MAGIC NUMBERS
+        for (var i = 1; i < this.numSkins; i++) {
             this.skins[i].x -= 150 * dir;
         }
 
