@@ -1,18 +1,22 @@
 'use strict';
 
 var CreationScene = {
-    skins: null,
-    skinIndex: null,
-    params: null,
-    right: 1,
-    left: -1,
-    txt: null,
-
+    // skins: null,
+    // skinIndex: null,
+    // params: null,
+    // txt: null,
+    // submenus: [],
+    // menuIndex: 0,
 
     create: function () {
         this.skins = [];
+        this.numSkins = 11;
         this.skinIndex = 1;
         this.params = {};
+        this.submenus = ['name', 'skin', 'gender', 'create'];
+        this.right = 1;
+        this.left = -1;
+        this.index = 1;
 
         this.txt = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeGreenFont', 'Choose your appearance', 40);
         this.txt.anchor.setTo(0.5, 0.5);
@@ -36,55 +40,60 @@ var CreationScene = {
         arrow.scale.setTo(0.25, 0.25);
 
 
-
         return this.skins;
     },
 
     update: function () {
+        this.checkInput(); // this.game, this.skins, this.skinIndex, this.params);
+    },
+
+
+    //Métodos
+
+    checkInput: function () { // game, this.skins, this.skinIndex, params) {
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
-            move(this.game, this.skins, this.skinIndex, this.right);
+            this.move(this.right);
             this.skinIndex++;
         } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
-            move(this.game, this.skins, this.skinIndex, this.left);
+            this.move(this.left);
             this.skinIndex--;
         }
 
         if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            skinSelected(this.game, this.params, this.skinIndex);
+            this.skinSelected();
         }
+
     },
 
+    move: function (dir) {
+        //dir: izq = -1, der = 1
+        var scroll = this.game.add.audio('scroll');
+        scroll.play();
+
+        for (var i = 1; i < this.numSkins; i++) { // Cuidado con los MAGIC NUMBERS
+            this.skins[i].x -= 150 * dir;
+        }
+
+        this.index = (this.index + 1) * dir;
+        this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
+    },
+
+    skinSelected: function () {
+        this.game.select.play();
+        this.creationCompleted();
+    },
+
+    creationCompleted: function () {
+        this.params.simIndex = this.index;
+
+        var sound = this.game.add.audio('creationCompleted');
+        sound.play();
+
+        localStorage.setItem("playerData", JSON.stringify(this.params));
+
+        this.game.state.start('play'); //Empieza playScene
+    }
 
 };
-
-//Métodos
-
-function move(game, skins, index, dir) { //dir: izq = -1, der = 1
-    var scroll = game.add.audio('scroll');
-    scroll.play();
-
-    for (var i = 1; i < 11; i++) {
-        skins[i].x -= 150 * dir;
-    }
-    index = (index + 1) * dir;
-    game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
-}
-
-
-function skinSelected(game, params, index) {
-    game.select.play();
-    creationCompleted(game, params, index);
-}
-
-function creationCompleted(game, params, index) {
-    params.simIndex = index;
-
-    var sound = game.add.audio('creationCompleted');
-    sound.play();
-
-    localStorage.setItem("playerData", JSON.stringify(params));
-
-    game.state.start('play'); //Empieza playScene
-}
 
 module.exports = CreationScene;
