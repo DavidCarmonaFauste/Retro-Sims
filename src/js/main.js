@@ -32,6 +32,11 @@ var PreloaderScene = {
     this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
 
+    // Tilemaps y tilesets
+    this.game.load.tilemap('tilemap', 'images/tiles/tilemaps/tilemap0_prueba.json', null, Phaser.Tilemap.TILED_JSON);
+    //this.game.load.tilemap('tilemap', 'images/tiles/tilemaps/tilemap0_prueba_suelo.csv');
+    this.load.image('tileset', 'images/tiles/tilemaps/tileset64.png');
+
     // Fuentes
     this.game.load.bitmapFont('arcadeWhiteFont', 'fonts/arcadebmfWhite.png', 'fonts/arcadebmf.xml');
     this.game.load.bitmapFont('arcadeBlackFont', 'fonts/arcadebmfBlack.png', 'fonts/arcadebmf.xml');
