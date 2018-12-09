@@ -23,58 +23,50 @@ var PlayScene = {
   },
 
   create: function () {
+    this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //Tilemap
-    this.map = this.game.add.tilemap('tilemap', 64, 64);
-    this.map.addTilesetImage('tileset64', 'tileset');
-    //this.map.setCollision([15,16,10,9]);
-    this.soilLayer = this.map.createLayer('suelo');
-    //console.log(this.soilLayer);
-    this.soilLayer.resizeWorld();
+    this.map = this.game.add.tilemap('map', 64, 64);
+    this.map.addTilesetImage('tileset');
+    //layer
+    this.layer = this.map.createLayer(0);
+    this.layer.resizeWorld();
+    //collision
+    this.map.setCollisionByExclusion([], true, this.layer);
 
-    this.objectsLayer = this.map.createLayer('objetos');
-    this.map.setCollision([6,7,8,9,13,14,15,19], true, 'objetos');
-    this.objectsLayer.resizeWorld();
+    this.layer.debug = this.debug; //debug del tilemap
 
-    //this.objectsLayer.debug = true;
-    this.wallsLayer = this.map.createLayer('walls');
-    this.map.setCollision(true, 'walls');
-    this.wallsLayer.resizeWorld();
-
-    this.game.physics.arcade.enable(this.objectsLayer);
-
+    //Creación del jugador
     this.player = new Player(
       this.game, 'sim' + this.params.simIndex,
       this.game.world.centerX, this.game.world.centerY - 64,
       'jugador', 10, 10, 10);
 
-    this.arrow = this.player.addChild(this.game.make.sprite(0, -250, 'arrow'));
-    this.arrow.anchor.setTo(0.5, 0.5);
-    this.arrow.scale.setTo(0.5, 0.5);
-
-
-    this.game.physics.arcade.enable(this.player);
     this.camera.follow(this.player);
-    this.player.body.collideWorldBounds = true;
+
+    this.cursors = this.game.input.keyboard.createCursorKeys();
 
   },
 
   update: function () {
-    this.game.physics.arcade.collide(this.arrow, this.objectsLayer, function(){ 
-      console.log('colisión entre arrow y objetos');
-    });
+    this.game.physics.arcade.collide(this.player, this.layer);
 
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
       this.wallsLayer.kill();
     }
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
       this.wallsLayer.revive();
+    }*/
+  },
+
+  render: function () {
+
+    //Debugs
+    if (this.debug) {
+      this.game.debug.spriteInfo(this.player, 32, );
+      this.game.debug.body(this.player);
     }
   }
 };
-
-//, function(){ 
-//  console.log('colisión entre player y objetos');
-//}
 module.exports = PlayScene;

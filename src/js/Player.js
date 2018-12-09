@@ -2,7 +2,7 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
   Phaser.Sprite.call(this, game, x, y, sprite);
 
   this.anchor.setTo(0.5, 0.5);
-  this.scale.setTo(0.25,0.25);
+  this.scale.setTo(0.25, 0.25);
 
 
   this.needs = {
@@ -21,10 +21,10 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
   this.name = name;
 
   this.active = true; //indica si el player se puede mover (no está en modo edición/conversación...)
-  this.speed = 4; //velocidad de movimiento
+  this.speed = 300; //velocidad de movimiento
 
   //Animaciones
-  this.animations.add('idle',[0,1], 1, true);
+  this.animations.add('idle', [0, 1], 1, true);
 
   this.controls = {
     right: game.input.keyboard.addKey(Phaser.Keyboard.RIGHT),
@@ -34,7 +34,17 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
   };
 
 
+  game.physics.enable(this, Phaser.Physics.ARCADE);
+
   game.add.existing(this); //añadir el sprite al game
+  this.body.setSize(160, 256, 32, 0); //Establece el tamaño del collider
+  
+  this.body.collideWorldBounds = true; //Establece la colisión con los límites del juego
+
+  //Crea la flecha del jugador
+  this.arrow = this.addChild(this.game.make.sprite(0, -250, 'arrow'));
+    this.arrow.anchor.setTo(0.5, 0.5);
+    this.arrow.scale.setTo(0.5, 0.5);
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -42,24 +52,28 @@ Player.prototype.constructor = Player;
 
 
 //Métodos
-Player.prototype.update = function() {
-  if(this.active) //Comprueba que player no está en modo edición/conversación
+Player.prototype.update = function () {
+
+  if (this.active) //Comprueba que player no está en modo edición/conversación
     this.move();
 };
 
-Player.prototype.move = function() {
-  if(this.controls.up.isDown){  //UP
+Player.prototype.move = function () {
+  this.body.velocity.x = 0;
+  this.body.velocity.y = 0;
+
+  if (this.controls.up.isDown) { //UP
     //this.animations.play('up');
-    this.y -= this.speed;
-  } else if(this.controls.down.isDown){ //DOWN
+    this.body.velocity.y -= this.speed;
+  } else if (this.controls.down.isDown) { //DOWN
     //this.animations.play('down');
-    this.y += this.speed;
-  } else if (this.controls.left.isDown){ //LEFT
+    this.body.velocity.y += this.speed;
+  } else if (this.controls.left.isDown) { //LEFT
     //this.animations.play('left');
-    this.x -= this.speed;
-  } else if (this.controls.right.isDown){ //RIGHT
+    this.body.velocity.x -= this.speed;
+  } else if (this.controls.right.isDown) { //RIGHT
     //this.animations.play('right');
-    this.x += this.speed;
+    this.body.velocity.x += this.speed;
   }
 }
 
