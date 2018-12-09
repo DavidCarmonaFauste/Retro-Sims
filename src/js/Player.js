@@ -37,7 +37,7 @@ function Player(game, sprite, x, y, name, intelligence, fitness, charisma, money
   game.physics.enable(this, Phaser.Physics.ARCADE);
 
   game.add.existing(this); //añadir el sprite al game
-  this.body.setSize(160, 256, 32, 0); //Establece el tamaño del collider
+  this.body.setSize(160, 160, 32, 96); //Establece el tamaño y la posición del collider (w,h,x,y)
   
   this.body.collideWorldBounds = true; //Establece la colisión con los límites del juego
 

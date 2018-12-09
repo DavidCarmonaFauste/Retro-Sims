@@ -33,8 +33,7 @@ var PreloaderScene = {
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
 
     // Tilemaps y tilesets
-    this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap1p_wallLayer.csv', null, Phaser.Tilemap.CSV);
-    //this.game.load.tilemap('tilemap', 'images/tiles/tilemaps/tilemap0_prueba_suelo.csv');
+    this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemapCasa.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('tileset', 'images/tiles/tilemaps/tileset64.png');
 
     // Fuentes

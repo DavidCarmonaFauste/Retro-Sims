@@ -27,15 +27,19 @@ var PlayScene = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //Tilemap
-    this.map = this.game.add.tilemap('map', 64, 64);
-    this.map.addTilesetImage('tileset');
-    //layer
-    this.layer = this.map.createLayer(0);
-    this.layer.resizeWorld();
+    this.map = this.game.add.tilemap('map');//, 64, 64);
+    this.map.addTilesetImage('tileset', 'tileset');
+    //layers
+    this.groundLayer = this.map.createLayer('groundLayer');
+    this.groundLayer.resizeWorld();
+    this.groundWallLayer = this.map.createLayer('groundWallLayer');
+    this.wallLayer = this.map.createLayer('wallLayer');
+    this.objectsLayer = this.map.createLayer('objectsLayer');
     //collision
-    this.map.setCollisionByExclusion([], true, this.layer);
+    this.map.setCollisionByExclusion([], true, this.groundWallLayer);
+    this.map.setCollisionByExclusion([], true, this.objectsLayer);
 
-    this.layer.debug = this.debug; //debug del tilemap
+    this.objectsLayer.debug = this.debug; //debug del tilemap
 
     //Creación del jugador
     this.player = new Player(
@@ -50,14 +54,15 @@ var PlayScene = {
   },
 
   update: function () {
-    this.game.physics.arcade.collide(this.player, this.layer);
+    this.game.physics.arcade.collide(this.player, this.groundWallLayer);
+    this.game.physics.arcade.collide(this.player, this.objectsLayer);
 
-    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-      this.wallsLayer.kill();
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+      this.wallLayer.kill();
     }
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.ESC)) {
-      this.wallsLayer.revive();
-    }*/
+      this.wallLayer.revive();
+    }
   },
 
   render: function () {
