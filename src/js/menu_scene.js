@@ -17,6 +17,7 @@ var MenuScene = {
             this.game.world.centerX, this.game.world.centerY + 120,
             550, 70,
             function () {
+                this.game.tap.volume = 0.1;
                 this.game.tap.play();
                 this.game.state.start('characterCreation');
             }
