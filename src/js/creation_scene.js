@@ -17,6 +17,8 @@ var CreationScene = {
         this.right = 1;
         this.left = -1;
         this.index = 1;
+        this.moveCamera = false;
+        this.positionMoved = 0;
 
         this.txt = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeGreenFont', 'Choose your appearance', 40);
         this.txt.anchor.setTo(0.5, 0.5);
@@ -39,6 +41,7 @@ var CreationScene = {
         arrow.anchor.setTo(0.5, 0.5);
         arrow.scale.setTo(0.25, 0.25);
 
+        this.game.world.setBounds(0, 0, 2000, 2000);
 
         return this.skins;
     },
@@ -54,18 +57,29 @@ var CreationScene = {
     },
 
     checkInput: function () { // game, this.skins, this.skinIndex, params) {
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
-            this.moveSkins(this.right);
-            this.skinIndex++;
-        } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
-            this.moveSkins(this.left);
-            this.skinIndex--;
-        }
+        if(this.moveCamera && this.positionMoved < 600){
+            this.game.camera.y+=6;
+            this.positionMoved+=6;
+            console.log(this.positionMoved);
+            if(this.positionMoved >= 600){
+                this.moveCamera = false;
+                this.positionMoved = 0;
+            }
+        } else{
 
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            this.skinSelected();
-        }
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
+                this.moveSkins(this.right);
+                this.skinIndex++;
+            } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
+                this.moveSkins(this.left);
+                this.skinIndex--;
+            }
 
+            if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                this.moveCamera = true;
+        }
+    }
+        this.game.debug.cameraInfo(this.game.camera, 32, 32);            //this.skinSelected();
     },
 
     moveSkins: function (dir) {
