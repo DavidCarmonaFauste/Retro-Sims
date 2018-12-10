@@ -9,19 +9,26 @@ function Map(game) {
     this.groundLayer = this.map.createLayer('groundLayer'); //suelo
     this.groundLayer.resizeWorld();
     this.groundWallLayer = this.map.createLayer('groundWallLayer'); //Paredes(altura 1)
-    this.wallLayer = this.map.createLayer('wallLayer'); //Paredes
     this.objectsLayer = this.map.createLayer('objectsLayer'); //Objetos
+    this.wallLayer = this.map.createLayer('wallLayer'); //Paredes
     //collision
     this.map.setCollisionByExclusion([], true, this.groundWallLayer);
     this.map.setCollisionByExclusion([], true, this.objectsLayer);
 
     //tile indexes(clase MAP)
-    this.sink = 15; //LAVABO
-    this.toilet = 16; //RETRETE
-    this.fridge = 19; //FRIGORÍFICO
-    this.mailbox = 17; //BUZÓN
+    this.sink = 51; //LAVABO
+    this.toilet = 52; //RETRETE
+    this.fridge = 73; //FRIGORÍFICO
+    this.mailbox = 53; //BUZÓN
+    this.bed = 29; //CAMA
 
     this.wallsAreActive = true; //true si las paredes del mapa están visibles
+    //Límites de la casa
+    this.x = 540;
+    this.y = 2202;
+    this.w = 2010;
+    this.h = 3210;
+    //game.physics.enable(this.doorTrigger, Phaser.Physics.ARCADE);
 }
 
 //MÉTODOS
@@ -41,6 +48,20 @@ function Map(game) {
         }
     }
 }*/
+
+
+//Comprueba si las coordenadas recibidas están dentro de los límites del mapa
+Map.prototype.isInside = function(_x, _y){
+    return(_x >= this.x && _x <= this.w &&
+        _y >= this.y && _y <= this.h);
+}
+
+
+//Crea las capas del tilemap que se ven por encima del jugador
+Map.prototype.createTopLayers = function () {
+    this.overPlayerObjects = this.map.createLayer('overPlayerObjects'); //Objetos sobre el jugador
+    this.overPlayerWalls = this.map.createLayer('overPlayerWalls'); //Paredes sobre el jugador
+}
 
 
 //Devuelve el furni que se encuentra en la posición (X, Y)
@@ -64,6 +85,9 @@ Map.prototype.getTileType = function (player) {
             case this.mailbox:
                 type = "mailbox";
                 break;
+            case this.bed:
+                type = "bed";
+                break;
             default:
                 type = "";
                 break;
@@ -76,12 +100,25 @@ Map.prototype.getTileType = function (player) {
 
 //Activa/Desactiva las paredes
 Map.prototype.toggleWalls = function () {
-    if (this.wallsAreActive)
+    if (this.wallsAreActive) {
         this.wallLayer.kill();
-    else
+        this.overPlayerWalls.kill();
+    } else {
         this.wallLayer.revive();
-
+        this.overPlayerWalls.revive();
+    }
     this.wallsAreActive = !this.wallsAreActive;
+};
+
+Map.prototype.setWalls = function (active) {
+    if (!active) {
+        this.wallLayer.kill();
+        this.overPlayerWalls.kill();
+    } else {
+        this.wallLayer.revive();
+        this.overPlayerWalls.revive();
+    }
+    //this.wallsAreActive = !this.wallsAreActive;
 };
 
 

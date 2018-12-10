@@ -30,7 +30,7 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   //Vel. de movimiento
   this.speed = 300; //velocidad de movimiento
   //Dirección de movimiento
-  this.dir = new Phaser.Point(0,1)
+  this.dir = new Phaser.Point(0, 1)
   //Animaciones
   this.animations.add('idle', [0, 1], 1, true);
 
@@ -70,7 +70,6 @@ Player.prototype.update = function () {
 
   if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
     this.map.toggleWalls();
-    console.log("fuera walls");
   }
 };
 
@@ -81,15 +80,19 @@ Player.prototype.move = function () {
   if (this.controls.up.isDown) { //UP
     //this.animations.play('up');
     this.body.velocity.y -= this.speed;
+    this.dir.x = 0; this.dir.y = 1;
   } else if (this.controls.down.isDown) { //DOWN
     //this.animations.play('down');
     this.body.velocity.y += this.speed;
+    this.dir.x = 0; this.dir.y = -1;
   } else if (this.controls.left.isDown) { //LEFT
     //this.animations.play('left');
     this.body.velocity.x -= this.speed;
+    this.dir.x = -1; this.dir.y = 0;
   } else if (this.controls.right.isDown) { //RIGHT
     //this.animations.play('right');
     this.body.velocity.x += this.speed;
+    this.dir.x = 1; this.dir.y = 0;
   }
 }
 
@@ -109,6 +112,10 @@ Player.prototype.interactWithMailbox = function () {
   console.log("Checking my mails");
 }
 
+Player.prototype.interactWithBed = function () {
+  console.log("Going to sleep, good night");
+}
+
 Player.prototype.interact = function (map) {
   var type = map.getTileType(this);
 
@@ -125,6 +132,9 @@ Player.prototype.interact = function (map) {
     case "mailbox":
       this.interactWithMailbox();
       break;
+    case "bed":
+      this.interactWithBed();
+      break;
     default:
       type = "Not an object"
       break;
@@ -135,7 +145,7 @@ Player.prototype.interact = function (map) {
 
 }
 
-Player.prototype.getDir = function(){
+Player.prototype.getDir = function () {
   return this.dir;
 }
 
