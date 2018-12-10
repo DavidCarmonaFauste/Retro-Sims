@@ -80,11 +80,11 @@ Player.prototype.move = function () {
   if (this.controls.up.isDown) { //UP
     //this.animations.play('up');
     this.body.velocity.y -= this.speed;
-    this.dir.x = 0; this.dir.y = 1;
+    this.dir.x = 0; this.dir.y = -1;
   } else if (this.controls.down.isDown) { //DOWN
     //this.animations.play('down');
     this.body.velocity.y += this.speed;
-    this.dir.x = 0; this.dir.y = -1;
+    this.dir.x = 0; this.dir.y = 1;
   } else if (this.controls.left.isDown) { //LEFT
     //this.animations.play('left');
     this.body.velocity.x -= this.speed;
@@ -94,6 +94,8 @@ Player.prototype.move = function () {
     this.body.velocity.x += this.speed;
     this.dir.x = 1; this.dir.y = 0;
   }
+
+  //console.log(this.dir.x + " " + this.dir.y);
 }
 
 Player.prototype.interactWithSink = function () {

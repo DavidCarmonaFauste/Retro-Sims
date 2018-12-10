@@ -46,7 +46,7 @@ var PreloaderScene = {
     this.game.load.audio('scroll', 'audio/scroll.wav');
     this.game.load.audio('select', 'audio/selection.wav');
     this.game.load.audio('creationCompleted', 'audio/creationCompleted.wav');
-    //this.game.load.audio('mainTheme', 'audio/mainTheme.mp3')
+    this.game.load.audio('mainTheme', 'audio/mainTheme.mp3')
   },
 
   create: function () {

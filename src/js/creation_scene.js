@@ -78,7 +78,6 @@ var CreationScene = {
         }
 
         this.index = this.index + (1 * dir);
-        console.log(this.index);
         this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
     },
 

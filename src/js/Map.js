@@ -20,7 +20,7 @@ function Map(game) {
     this.toilet = 52; //RETRETE
     this.fridge = 73; //FRIGORÍFICO
     this.mailbox = 53; //BUZÓN
-    this.bed = 29; //CAMA
+    this.bed = 26; //CAMA
 
     this.wallsAreActive = true; //true si las paredes del mapa están visibles
     //Límites de la casa
@@ -66,9 +66,10 @@ Map.prototype.createTopLayers = function () {
 
 //Devuelve el furni que se encuentra en la posición (X, Y)
 Map.prototype.getTileType = function (player) {
-    this.tile = this.map.getTile(this.objectsLayer.getTileX(player.x + (32 * player.getDir().x)), this.objectsLayer.getTileY(player.y - (32 * player.getDir().y)), this.objectsLayer);
+    this.tile = this.map.getTile(this.objectsLayer.getTileX(player.x + (32 * player.getDir().x)), this.objectsLayer.getTileY(player.y + (32 * player.getDir().y)), this.objectsLayer);
+    
     if (this.tile != null) {
-        console.log(player.x + " " + player.y + ": " + this.tile.index);
+        console.log(player.x + ", " + player.y + ": " + this.tile.index);
 
         var type = "";
 
