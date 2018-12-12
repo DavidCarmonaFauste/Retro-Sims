@@ -17,10 +17,14 @@ var CreationScene = {
         this.right = 1;
         this.left = -1;
         this.index = 1;
+        this.moveCamera = false;
+        this.positionMoved = 0;
+        this.name = '';
+        this.state = this.submenus[1];
 
-        this.txt = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeGreenFont', 'Choose your appearance', 40);
-        this.txt.anchor.setTo(0.5, 0.5);
-        this.txt.align = "center";
+        this.txtApperance = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeGreenFont', 'Choose your appearance', 40);
+        this.txtApperance.anchor.setTo(0.5, 0.5);
+        this.txtApperance.align = "center";
 
         var graySquare = this.game.add.image(
             0, this.game.world.centerY, 'paredTop');
@@ -39,7 +43,18 @@ var CreationScene = {
         arrow.anchor.setTo(0.5, 0.5);
         arrow.scale.setTo(0.25, 0.25);
 
+        this.game.world.setBounds(0, 0, 2000, 2000);
 
+        var continueTxt = this.game.add.bitmapText(450, 550, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
+        continueTxt.fixedToCamera = true;
+
+        this.txtName = this.game.add.bitmapText(400, 800, 'arcadeGreenFont', 'Choose your name', 40);
+        this.txtName.anchor.setTo(0.5, 0.5);
+        this.txtName.align = "center";
+
+        var nameTxt = this.game.add.bitmapText(400, 1000, 'arcadeWhiteFont', '>' + '<', 40);
+        nameTxt.anchor.setTo(0.5, 0.5);
+        nameTxt.align = "center";
         return this.skins;
     },
 
@@ -49,23 +64,68 @@ var CreationScene = {
 
 
     //Métodos
-    moveCamera: function(){
+    moveCamera: function () {
 
     },
 
     checkInput: function () { // game, this.skins, this.skinIndex, params) {
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
-            this.moveSkins(this.right);
-            this.skinIndex++;
-        } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
-            this.moveSkins(this.left);
-            this.skinIndex--;
-        }
+        if (this.moveCamera && this.positionMoved < 600) {
+            this.game.camera.y += 6;
+            this.positionMoved += 6;
+           // console.log(this.positionMoved);
+            if (this.positionMoved >= 600) {
+                this.moveCamera = false;
+                this.positionMoved = 0;
+            }
+        } else {
 
-        if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-            this.skinSelected();
-        }
+            if (this.state == this.submenus[1]) {
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
+                    this.moveSkins(this.right);
+                    this.skinIndex++;
+                } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT) && this.skinIndex > 1) {
+                    this.moveSkins(this.left);
+                    this.skinIndex--;
+                }
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                    this.moveCamera = true;
+                    this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
+                    this.state = this.submenus[0];
+                }
+            } else if(this.state == this.submenus[0]){
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.BACKSPACE)) {
+                    name = name.substring(0, name.length - 1);;
+                    //console.log(name);
+                    this.game.input.keyboard.reset(true); //resetea el teclado para evitar borrar muchas de golpe
+                    this.printText(name);
+                } else {
+                    this.game.input.keyboard.onPressCallback = function (e) {
+                        if (!this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) { //para eviar que se pongan espacios
+                            name += e;
+                            CreationScene.printText(name);
+                        }
+                    };
+                }
 
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                    
+                    this.creationCompleted();
+                }
+            }
+        }
+        this.game.debug.cameraInfo(this.game.camera, 32, 32); //this.skinSelected();
+    },
+
+    printText: function (name) {
+        this.game.world.removeAll();
+        var continueTxt = this.game.add.bitmapText(450, 1150, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
+        this.txtName = this.game.add.bitmapText(400, 800, 'arcadeGreenFont', 'Choose your name', 40);
+        this.txtName.anchor.setTo(0.5, 0.5);
+        this.txtName.align = "center";
+        //console.log(name);
+        var nameTxt = this.game.add.bitmapText(400, 1000, 'arcadeWhiteFont', '>' + name + '<', 40);
+        nameTxt.anchor.setTo(0.5, 0.5);
+        nameTxt.align = "center";
     },
 
     moveSkins: function (dir) {
@@ -88,6 +148,7 @@ var CreationScene = {
 
     creationCompleted: function () {
         this.params.simIndex = this.index;
+        this.params.name = name;
 
         var sound = this.game.add.audio('creationCompleted');
         sound.play();
