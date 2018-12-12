@@ -434,7 +434,7 @@ var CreationScene = {
                 }
             }
         }
-        this.game.debug.cameraInfo(this.game.camera, 32, 32); //this.skinSelected();
+        //this.game.debug.cameraInfo(this.game.camera, 32, 32); //this.skinSelected();
     },
 
     printText: function (name) {
