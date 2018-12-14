@@ -21,6 +21,11 @@ var CreationScene = {
         this.positionMoved = 0;
         this.name = '';
         this.state = this.submenus[1];
+        this.intelligence = 0;
+        this.fitness = 0;
+        this.charisma = 0;
+        this.points = 0;        //puntos repartidos
+        this.maxpoints = 5;     //puntos a repartir
 
         this.txtApperance = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeGreenFont', 'Choose your appearance', 40);
         this.txtApperance.anchor.setTo(0.5, 0.5);
@@ -47,7 +52,7 @@ var CreationScene = {
 
         var continueTxt = this.game.add.bitmapText(450, 550, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
         continueTxt.fixedToCamera = true;
-
+        this.txt;
         this.txtName = this.game.add.bitmapText(400, 800, 'arcadeGreenFont', 'Choose your name', 40);
         this.txtName.anchor.setTo(0.5, 0.5);
         this.txtName.align = "center";
@@ -55,6 +60,7 @@ var CreationScene = {
         var nameTxt = this.game.add.bitmapText(400, 1000, 'arcadeWhiteFont', '>' + '<', 40);
         nameTxt.anchor.setTo(0.5, 0.5);
         nameTxt.align = "center";
+
         return this.skins;
     },
 
@@ -70,8 +76,8 @@ var CreationScene = {
 
     checkInput: function () { // game, this.skins, this.skinIndex, params) {
         if (this.moveCamera && this.positionMoved < 600) {
-            this.game.camera.y += 6;
-            this.positionMoved += 6;
+            this.game.camera.y += 20;
+            this.positionMoved += 20;
            // console.log(this.positionMoved);
             if (this.positionMoved >= 600) {
                 this.moveCamera = false;
@@ -87,28 +93,58 @@ var CreationScene = {
                     this.moveSkins(this.left);
                     this.skinIndex--;
                 }
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
                     this.moveCamera = true;
                     this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
                     this.state = this.submenus[0];
                 }
             } else if(this.state == this.submenus[0]){
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.BACKSPACE)) {
-                    name = name.substring(0, name.length - 1);;
+                    name = name.substring(0, name.length - 1);
+                    var sound = this.game.add.audio('keyboardBackspace');
+                    sound.volume = 0.2;
+                    sound.play();
                     //console.log(name);
                     this.game.input.keyboard.reset(true); //resetea el teclado para evitar borrar muchas de golpe
                     this.printText(name);
                 } else {
-                    this.game.input.keyboard.onPressCallback = function (e) {
-                        if (!this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) { //para eviar que se pongan espacios
+                    this.input.keyboard.onPressCallback = function (e) {
+                        if (!(this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) && name.length <20) { //para eviar que se pongan espacios
                             name += e;
+                            if(Math.random() > 0.5)
+                                var sound = this.game.add.audio('keyboard1');
+                            else 
+                                var sound = this.game.add.audio('keyboard2');
+                                sound.volume = 0.2;
+                            sound.play();
                             CreationScene.printText(name);
                         }
                     };
-                }
+                } 
 
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
-                    
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) { //pasamos al submenú 3
+                    this.game.world.removeAll();
+                    var nameTxt = this.game.add.bitmapText(400, 1000, 'arcadeWhiteFont', '>' + name + '<', 40);
+                    nameTxt.anchor.setTo(0.5, 0.5);
+                    nameTxt.align = "center";
+                    this.txt = this.game.add.bitmapText(450, 550, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
+                    this.txt.fixedToCamera = true;
+                    this.moveCamera = true;
+                    this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
+                    this.state = this.submenus[2];
+                }
+            } else if(this.state == this.submenus[2]){
+                var intelligenceTxt = this.game.add.bitmapText(400, 1350, 'arcadeGreenFont', 'Intelligence:' , 30);
+                intelligenceTxt.anchor.setTo(1, 1);
+
+                var charismaTxt = this.game.add.bitmapText(400, 1500, 'arcadeGreenFont', 'Charisma: ' , 30);
+                charismaTxt.anchor.setTo(1, 1);
+
+                var fitnessTxt = this.game.add.bitmapText(400, 1650, 'arcadeGreenFont', 'Fitness: ' , 30);
+                fitnessTxt.anchor.setTo(1, 1);
+
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+
                     this.creationCompleted();
                 }
             }
