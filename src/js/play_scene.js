@@ -23,6 +23,14 @@ var PlayScene = {
   },
 
   create: function () {
+    /*this.game.input.keyboard.onPressCallback = function (e) {
+      if (!this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) { //para eviar que se pongan espacios
+          console.log('pues si');
+      }
+    }*/
+
+
+
     //Valores iniciales
     this.initialX = this.game.world.centerX + 910, this.initialY = 3500;
 
@@ -39,10 +47,11 @@ var PlayScene = {
     this.player = new Player(
       this.game, this.map, 'sim' + this.playerParams.simIndex,
       this.initialX, this.initialY,
-      'jugador', 10, 10, 10);
+    this.playerParams.name, 10, 10, 10);
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
 
+    this.createHUD();
 
   },
 
@@ -65,6 +74,16 @@ var PlayScene = {
       this.game.debug.spriteInfo(this.player, 32, );
       this.game.debug.body(this.player);
     }
+  },
+
+  //Crea la interfaz del
+  createHUD: function () {
+    this.hud_playerBox = this.game.add.sprite(85, window.innerHeight - 20, 'hudBox');
+    this.hud_playerBox.anchor.set(0.5,0.5);
+    this.hud_playerBox.scale.set(4,5);
+    this.hud_playerBox.fixedToCamera = true;
+    this.hud_nameText = this.game.add.bitmapText(50, window.innerHeight - 50, 'arcadeBlackFont', this.player.name, 20);
+    this.hud_nameText.fixedToCamera = true;
   }
 };
 module.exports = PlayScene;

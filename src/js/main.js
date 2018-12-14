@@ -32,6 +32,10 @@ var PreloaderScene = {
     this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
     this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
+
+    // Imágenes del HUD
+    this.game.load.image('hudBox', 'images/hud/hudBox.png'); //caja básica de la interfaz
+
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('tileset', 'images/tiles/tilemaps/tileset64.png');
