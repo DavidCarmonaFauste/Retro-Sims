@@ -8,10 +8,11 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.scale.setTo(0.3, 0.3);
 
   //Necesidades
+  this.maxNeed = 100;
   this.needs = {
-    pee: 10,
-    hunger: 10,
-    fatigue: 10
+    pee: this.maxNeed,
+    hunger: this.maxNeed,
+    fatigue: this.maxNeed
   };
   //Atributos
   this.stats = {
@@ -69,7 +70,8 @@ Player.prototype.update = function () {
   }
 
   if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
-    this.map.toggleWalls();
+    this.needs.fatigue--;
+    console.log(this.needs.fatigue);
   }
 };
 
@@ -104,10 +106,12 @@ Player.prototype.interactWithSink = function () {
 
 Player.prototype.interactWithToilet = function () {
   console.log("Peeing");
+  this.needs.pee = this.maxNeed;
 }
 
 Player.prototype.interactWithFridge = function () {
   console.log("Getting something to eat");
+  this.needs.hunger = this.maxNeed;
 }
 
 Player.prototype.interactWithMailbox = function () {
@@ -115,6 +119,7 @@ Player.prototype.interactWithMailbox = function () {
 }
 
 Player.prototype.interactWithBed = function () {
+  this.needs.fatigue = this.maxNeed;
   console.log("Going to sleep, good night");
 }
 

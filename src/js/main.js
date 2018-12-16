@@ -35,6 +35,16 @@ var PreloaderScene = {
 
     // Imágenes del HUD
     this.game.load.image('hudBox', 'images/hud/hudBox.png'); //caja básica de la interfaz
+    this.game.load.image('friendsIcon', 'images/hud/friendsIcon.png'); //icono submenú 'friends'
+    this.game.load.image('friendsIconSelected', 'images/hud/friendsIconSelected.png'); //icono submenú 'friends'
+    this.game.load.image('needsIcon', 'images/hud/needsIcon.png'); //icono submenú 'needs'
+    this.game.load.image('needsIconSelected', 'images/hud/needsIconSelected.png'); //icono submenú 'needs'
+    this.game.load.image('youIcon', 'images/hud/youIcon.png'); //icono submenú 'you'
+    this.game.load.image('youIconSelected', 'images/hud/youIconSelected.png'); //icono submenú 'you'
+    this.game.load.image('hungerIcon', 'images/hud/hungerIcon.png'); //icono necesidad: HUNGER
+    this.game.load.image('toiletIcon', 'images/hud/toiletIcon.png'); //icono necesidad: TOILET
+    this.game.load.image('sleepIcon', 'images/hud/sleepIcon.png'); //icono necesidad: SLEEP
+    this.game.load.image('greenBox', 'images/hud/greenBox.png'); //cuadrado verde usado para las barras de necesidad
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);

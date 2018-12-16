@@ -22,6 +22,7 @@ var PlayScene = {
     console.log(this.playerParams);
   },
 
+  //CREATE
   create: function () {
     /*this.game.input.keyboard.onPressCallback = function (e) {
       if (!this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) { //para eviar que se pongan espacios
@@ -29,11 +30,14 @@ var PlayScene = {
       }
     }*/
 
-
-
     //Valores iniciales
     this.initialX = this.game.world.centerX + 910, this.initialY = 3500;
-
+    //Información que se muestra en el hud:
+    // 0: NEEDS
+    // 1: YOU
+    // 2: FRIENDS
+    // Empieza con NEEDS
+    this.selectedHUD = 0;
 
     this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -47,14 +51,14 @@ var PlayScene = {
     this.player = new Player(
       this.game, this.map, 'sim' + this.playerParams.simIndex,
       this.initialX, this.initialY,
-    this.playerParams.name, 10, 10, 10);
+      this.playerParams.name, 10, 10, 10);
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
 
     this.createHUD();
-
   },
 
+  //UPDATE
   update: function () {
     //Colisiones
     this.game.physics.arcade.collide(this.player, this.map.groundWallLayer);
@@ -62,28 +66,219 @@ var PlayScene = {
     //Desactiva las paredes si el jugador está en la casa
     if (this.map.isInside(this.player.x, this.player.y)) {
       this.map.setWalls(false);
-    }
-    else
+    } else
       this.map.setWalls(true);
+
+    this.hungerBar.width = this.player.needs.hunger / this.player.maxNeed * this.barWidth;
+    this.sleepBar.width = this.player.needs.fatigue / this.player.maxNeed * this.barWidth;
+    this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
   },
 
+  //RENDER
   render: function () {
-
     //Debugs
     if (this.debug) {
-      this.game.debug.spriteInfo(this.player, 32, );
+      this.game.debug.spriteInfo(this.player, 32, 32);
       this.game.debug.body(this.player);
     }
+    //this.game.debug.spriteInfo(this.hud_mainBox, 32, 80);
+    //this.game.debug.text("x: "+ this.hud_playerName.x + "   \ny: " + this.hud_playerName.y, 32, 32);
   },
 
   //Crea la interfaz del
   createHUD: function () {
-    this.hud_playerBox = this.game.add.sprite(85, window.innerHeight - 20, 'hudBox');
-    this.hud_playerBox.anchor.set(0.5,0.5);
-    this.hud_playerBox.scale.set(4,5);
-    this.hud_playerBox.fixedToCamera = true;
-    this.hud_nameText = this.game.add.bitmapText(50, window.innerHeight - 50, 'arcadeBlackFont', this.player.name, 20);
-    this.hud_nameText.fixedToCamera = true;
+    //main hud box
+    this.hud_mainBox = this.game.add.sprite(window.innerWidth - 400, window.innerHeight + 120, 'hudBox');
+    this.hud_mainBox.anchor.set(0.5, 0.5);
+    this.hud_mainBox.scale.set(1, 0.5);
+    this.hud_mainBox.fixedToCamera = true;
+
+    //dimensiones y posiciones del HUD 
+    this.hud_x = 150;
+    this.hud_y = 485;
+    this.hud_limitX = 600;
+    this.hud_limitY = 550;
+    this.hud_buttonW = 64;
+    this.hud_buttonsX = this.hud_x * 4; // + this.hud_x/2;
+    this.hud_buttonsY = this.hud_y + 80;
+    this.hud_icons_x = this.hud_x - 40;
+    this.hud_icons_offset = 50;
+    this.barWidth = 85;
+    //this.hud_barOffset = 
+
+    //player's name
+    this.hud_playerName = this.game.add.bitmapText(this.hud_x, this.hud_y, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
+    this.hud_playerName.align = "left";
+    this.hud_playerName.fixedToCamera = true;
+
+
+    //SUBMENÚS:  NEEDS, YOU, FRIENDS
+    //  NEEDS
+    //group
+    this.needsGroup = this.game.add.group();
+    this.needsGroup.create(this.hud_icons_x, this.hud_buttonsY, 'hungerIcon');
+    this.needsGroup.create(this.hud_icons_x * 2 + this.hud_icons_offset + 10, this.hud_buttonsY, 'sleepIcon');
+    this.needsGroup.create(this.hud_icons_x * 3 + this.hud_icons_offset * 2, this.hud_buttonsY, 'toiletIcon');
+
+    //barras de necesidad
+    this.hungerBar = this.game.add.sprite(this.hud_icons_x + this.hud_icons_offset, this.hud_buttonsY, 'greenBox');
+    this.sleepBar = this.game.add.sprite((this.hud_icons_x + this.hud_icons_offset) * 2  - 5, this.hud_buttonsY, 'greenBox');
+    this.toiletBar = this.game.add.sprite((this.hud_icons_x + this.hud_icons_offset) * 3 -15, this.hud_buttonsY, 'greenBox');
+    
+    //console.log('hunger: '+ this.player.needs.hunger + " :: " + this.hungerBar.width);
+
+    this.needsGroup.add(this.hungerBar);
+    this.needsGroup.add(this.sleepBar);
+    this.needsGroup.add(this.toiletBar);
+
+    this.needsGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+      elem.scale.setTo(0.075, 0.075);
+      elem.anchor.setTo(0.5, 0.5);
+    });
+
+    this.hungerBar.anchor.setTo(0, 0);
+    this.sleepBar.anchor.setTo(0, 0);
+    this.toiletBar.anchor.setTo(0, 0);
+
+    //button
+    this.needsButton = this.addButton('needsIconSelected', '', this.hud_buttonsX, this.hud_buttonsY, this.hud_buttonW, this.hud_buttonW, function () {
+      if (this.selectedHUD != 0) {
+        this.changeMenu(this.needsGroup);
+        this.resetHUD();
+        this.needsButton.loadTexture('needsIconSelected');
+        this.selectedHUD = 0;
+      }
+    });
+    this.needsButton.fixedToCamera = true;
+
+
+    //  YOU
+    //group
+    this.youGroup = this.game.add.group();
+    this.youGroup.create(this.hud_icons_x * 2, this.hud_buttonsY, 'toiletIcon');
+    this.youGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+      elem.scale.setTo(0.075, 0.075);
+      elem.anchor.setTo(0.5, 0.5);
+    });
+
+    //button
+    this.youButton = this.addButton('youIcon', '', this.hud_buttonsX + this.hud_buttonW, this.hud_buttonsY, this.hud_buttonW, this.hud_buttonW, function () {
+      if (this.selectedHUD != 1) {
+        this.changeMenu(this.youGroup);
+        this.resetHUD();
+        this.youButton.loadTexture('youIconSelected');
+        this.selectedHUD = 1;
+      }
+    });
+    this.youButton.fixedToCamera = true;
+
+    //  FRIENDS
+    //group
+    this.friendsGroup = this.game.add.group();
+    this.friendsGroup.create(this.hud_x * 2, this.hud_buttonsY, 'hungerIcon');
+    this.friendsGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+      elem.scale.setTo(0.075, 0.075);
+      elem.anchor.setTo(0.5, 0.5);
+    });
+
+    //button
+    this.friendsButton = this.addButton('friendsIcon', '', this.hud_buttonsX + 2 * this.hud_buttonW, this.hud_buttonsY, this.hud_buttonW, this.hud_buttonW, function () {
+      if (this.selectedHUD != 2) {
+        this.changeMenu(this.friendsGroup);
+        this.resetHUD();
+        this.friendsButton.loadTexture('friendsIconSelected');
+        this.selectedHUD = 2;
+      }
+    });
+    this.friendsButton.fixedToCamera = true;
+
+    this.hideGroup(this.needsGroup);
+    this.hideGroup(this.youGroup);
+    this.hideGroup(this.friendsGroup);
+    this.showActualMenu();
+  },
+
+  //deselecciona el submenú actual del hud
+  resetHUD: function () {
+    switch (this.selectedHUD) {
+      case 0:
+        this.needsButton.loadTexture('needsIcon');
+        break;
+      case 1:
+        this.youButton.loadTexture('youIcon');
+        break;
+      case 2:
+        this.friendsButton.loadTexture('friendsIcon');
+        break;
+    }
+
+  },
+
+  //Muestra el submenú de NEEDS/YOU/FRIENDS
+  showActualMenu: function () {
+    var menu = this.getActualMenu();
+
+    this.showGroup(menu);
+  },
+
+  //Hides actual menu and shows the new one
+  changeMenu: function (newGroup) {
+    var oldGroup;
+
+    //encuentra el menú actual
+    oldGroup = this.getActualMenu();
+
+    this.hideGroup(oldGroup);
+    this.showGroup(newGroup);
+  },
+
+  getActualMenu: function () {
+    var menu = null;
+
+    switch (this.selectedHUD) {
+      case 0:
+        menu = this.needsGroup;
+        break;
+      case 1:
+        menu = this.youGroup;
+        break;
+      case 2:
+        menu = this.friendsGroup;
+        break;
+    }
+
+    return menu;
+  },
+
+  hideGroup: function (group) {
+    group.forEach(function (elem) {
+      elem.kill();
+    });
+  },
+
+  showGroup: function (group) {
+    group.forEach(function (elem) {
+      elem.revive();
+    });
+  },
+
+  //Crea un botón
+  addButton: function (sprite, string, x, y, w, h, callback) {
+    var button = this.game.add.button(x, y, sprite, callback, this, 2, 1, 0);
+
+    button.anchor.setTo(0.5, 0.5);
+    button.width = w;
+    button.height = h;
+
+    var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 20);
+    txt.anchor.setTo(0.5, 0.5);
+    txt.align = "center";
+    txt.fixedToCamera = true;
+
+    return button;
   }
 };
 module.exports = PlayScene;

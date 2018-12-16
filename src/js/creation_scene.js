@@ -18,6 +18,7 @@ var CreationScene = {
         this.left = -1;
         this.index = 1;
         this.moveCamera = false;
+        this.cameraSpeed = 20;
         this.positionMoved = 0;
         this.name = '';
         this.state = this.submenus[1];
@@ -70,8 +71,8 @@ var CreationScene = {
 
     checkInput: function () { // game, this.skins, this.skinIndex, params) {
         if (this.moveCamera && this.positionMoved < 600) {
-            this.game.camera.y += 6;
-            this.positionMoved += 6;
+            this.game.camera.y += this.cameraSpeed;
+            this.positionMoved += this.cameraSpeed;
            // console.log(this.positionMoved);
             if (this.positionMoved >= 600) {
                 this.moveCamera = false;
@@ -110,6 +111,7 @@ var CreationScene = {
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
                     
                     this.creationCompleted();
+                    this.game.input.keyboard.onPressCallback = function(){}; //quita el callback
                 }
             }
         }
