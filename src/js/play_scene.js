@@ -39,7 +39,7 @@ var PlayScene = {
     // Empieza con NEEDS
     this.selectedHUD = 0;
 
-    this.debug = false; //Poner a true para activar los debugs de player y del tilemap
+    this.debug = true; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //Tilemap
@@ -82,7 +82,7 @@ var PlayScene = {
       this.game.debug.body(this.player);
     }
     //this.game.debug.spriteInfo(this.hud_mainBox, 32, 80);
-    //this.game.debug.text("x: "+ this.hud_playerName.x + "   \ny: " + this.hud_playerName.y, 32, 32);
+    //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
   },
 
   //Crea la interfaz del
@@ -116,15 +116,17 @@ var PlayScene = {
     //  NEEDS
     //group
     this.needsGroup = this.game.add.group();
+
+    //iconos
     this.needsGroup.create(this.hud_icons_x, this.hud_buttonsY, 'hungerIcon');
     this.needsGroup.create(this.hud_icons_x * 2 + this.hud_icons_offset + 10, this.hud_buttonsY, 'sleepIcon');
     this.needsGroup.create(this.hud_icons_x * 3 + this.hud_icons_offset * 2, this.hud_buttonsY, 'toiletIcon');
 
     //barras de necesidad
     this.hungerBar = this.game.add.sprite(this.hud_icons_x + this.hud_icons_offset, this.hud_buttonsY, 'greenBox');
-    this.sleepBar = this.game.add.sprite((this.hud_icons_x + this.hud_icons_offset) * 2  - 5, this.hud_buttonsY, 'greenBox');
-    this.toiletBar = this.game.add.sprite((this.hud_icons_x + this.hud_icons_offset) * 3 -15, this.hud_buttonsY, 'greenBox');
-    
+    this.sleepBar = this.game.add.sprite((this.hud_icons_x + this.hud_icons_offset) * 2 - 5, this.hud_buttonsY, 'greenBox');
+    this.toiletBar = this.game.add.sprite((this.hud_icons_x + this.hud_icons_offset) * 3 - 15, this.hud_buttonsY, 'greenBox');
+
     //console.log('hunger: '+ this.player.needs.hunger + " :: " + this.hungerBar.width);
 
     this.needsGroup.add(this.hungerBar);
@@ -153,15 +155,41 @@ var PlayScene = {
     this.needsButton.fixedToCamera = true;
 
 
-    //  YOU
+    //  YOU (ATRIBUTOS DEL JUGADOR)
     //group
     this.youGroup = this.game.add.group();
-    this.youGroup.create(this.hud_icons_x * 2, this.hud_buttonsY, 'toiletIcon');
+    //iconos
+    var youIconX = this.hud_x / 2;
+    var youIconSeparation = 180;
+    var youTextOffset = 25;
+
+    this.youGroup.create(youIconX, this.hud_buttonsY, 'intelligenceIcon');
+    this.youGroup.create(youIconX + youIconSeparation, this.hud_buttonsY, 'fitnessIcon');
+    this.youGroup.create(youIconX + 2 * youIconSeparation, this.hud_buttonsY, 'charismaIcon');
+
+    //player's stats (texts)
+    this.intelligenceText = this.game.add.bitmapText(youIconX + youTextOffset, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.intelligence + "/" + this.player.maxStat, 20);
+    this.fitnessText = this.game.add.bitmapText(youIconX + youIconSeparation + youTextOffset + 10, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.fitness + "/" + this.player.maxStat, 20);
+    this.charismaText = this.game.add.bitmapText(youIconX + 2 * youIconSeparation + youTextOffset, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.charisma + "/" + this.player.maxStat, 20);
+
+    this.youGroup.add(this.intelligenceText);
+    this.youGroup.add(this.fitnessText);
+    this.youGroup.add(this.charismaText);
     this.youGroup.forEach(function (elem) {
       elem.fixedToCamera = true;
-      elem.scale.setTo(0.075, 0.075);
+      if (elem.text == undefined) //si no es un texto, cambia la escala
+        elem.scale.setTo(0.075, 0.075);
       elem.anchor.setTo(0.5, 0.5);
     });
+
+    this.intelligenceText.align = "left";
+    this.fitnessText.align = "left";
+    this.charismaText.align = "left";
+
+
+    this.intelligenceText.anchor.setTo(0, 0.5);
+    this.fitnessText.anchor.setTo(0, 0.5);
+    this.charismaText.anchor.setTo(0, 0.5);
 
     //button
     this.youButton = this.addButton('youIcon', '', this.hud_buttonsX + this.hud_buttonW, this.hud_buttonsY, this.hud_buttonW, this.hud_buttonW, function () {

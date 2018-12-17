@@ -15,6 +15,7 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
     fatigue: this.maxNeed
   };
   //Atributos
+  this.maxStat = 10;
   this.stats = {
     intelligence: intelligence,
     fitness: fitness,
