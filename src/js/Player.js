@@ -183,9 +183,9 @@ Player.prototype.updateFriendship = function (neighbour) {
   console.log(this.friends[0]);
 }
 
-Player.prototype.isFriend = function () {
+Player.prototype.getFriend = function (index) {
 
-
+  return this.friends[index];
 }
 
 module.exports = Player;

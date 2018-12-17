@@ -56,7 +56,7 @@ var PlayScene = {
     this.camera.follow(this.player);
 
 
-      this.neig = new Neighbour(this.game, 'sim5', 0, this.game.initialY, 'Eric Allen');
+    this.neig = new Neighbour(this.game, 'sim5', 0, this.game.initialY, 'Eric Allen');
 
 
     this.createHUD();
@@ -77,9 +77,12 @@ var PlayScene = {
     this.sleepBar.width = this.player.needs.fatigue / this.player.maxNeed * this.barWidth;
     this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
 
-    if(this.checkPlayerOverlap(this.player, this.neig))
+    if (this.checkPlayerOverlap(this.player, this.neig)) {
       this.neig.setTalking(true);
-      
+      if (this.selectedHUD == 2)
+        this.updateFriendsHUD();
+    }
+
     this.player.updateFriendship(this.neig);
   },
 
@@ -94,14 +97,14 @@ var PlayScene = {
     //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
   },
 
-  checkPlayerOverlap: function(player, sim){
+  checkPlayerOverlap: function (player, sim) {
     var playerBounds = player.getBounds();
     var simBounds = sim.getBounds();
 
     return Phaser.Rectangle.intersects(playerBounds, simBounds);
   },
 
-  
+
 
   //Crea la interfaz del
   createHUD: function () {
@@ -177,18 +180,18 @@ var PlayScene = {
     //group
     this.youGroup = this.game.add.group();
     //iconos
-    var youIconX = this.hud_x / 2;
+    this.youIconX = this.hud_x / 2;
     var youIconSeparation = 180;
-    var youTextOffset = 25;
+    this.youTextOffset = 25;
 
-    this.youGroup.create(youIconX, this.hud_buttonsY, 'intelligenceIcon');
-    this.youGroup.create(youIconX + youIconSeparation, this.hud_buttonsY, 'fitnessIcon');
-    this.youGroup.create(youIconX + 2 * youIconSeparation, this.hud_buttonsY, 'charismaIcon');
+    this.youGroup.create(this.youIconX, this.hud_buttonsY, 'intelligenceIcon');
+    this.youGroup.create(this.youIconX + youIconSeparation, this.hud_buttonsY, 'fitnessIcon');
+    this.youGroup.create(this.youIconX + 2 * youIconSeparation, this.hud_buttonsY, 'charismaIcon');
 
     //player's stats (texts)
-    this.intelligenceText = this.game.add.bitmapText(youIconX + youTextOffset, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.intelligence + "/" + this.player.maxStat, 20);
-    this.fitnessText = this.game.add.bitmapText(youIconX + youIconSeparation + youTextOffset + 10, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.fitness + "/" + this.player.maxStat, 20);
-    this.charismaText = this.game.add.bitmapText(youIconX + 2 * youIconSeparation + youTextOffset, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.charisma + "/" + this.player.maxStat, 20);
+    this.intelligenceText = this.game.add.bitmapText(this.youIconX + this.youTextOffset, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.intelligence + "/" + this.player.maxStat, 20);
+    this.fitnessText = this.game.add.bitmapText(this.youIconX + youIconSeparation + this.youTextOffset + 10, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.fitness + "/" + this.player.maxStat, 20);
+    this.charismaText = this.game.add.bitmapText(this.youIconX + 2 * youIconSeparation + this.youTextOffset, this.hud_buttonsY, 'arcadeBlackFont', this.player.stats.charisma + "/" + this.player.maxStat, 20);
 
     this.youGroup.add(this.intelligenceText);
     this.youGroup.add(this.fitnessText);
@@ -223,12 +226,25 @@ var PlayScene = {
     //  FRIENDS
     //group
     this.friendsGroup = this.game.add.group();
-    this.friendsGroup.create(this.hud_x * 2, this.hud_buttonsY, 'hungerIcon');
+
+    /*for(var i = 0; i < this.player.numFriends + 1; i++){
+
+    }*/
+
+
+    //var friend = this.player.getFriend(0);
+    this.friendText = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
+      this.hud_buttonsY, 'arcadeBlackFont',
+      "AAAA", 20);
+
     this.friendsGroup.forEach(function (elem) {
       elem.fixedToCamera = true;
       elem.scale.setTo(0.075, 0.075);
       elem.anchor.setTo(0.5, 0.5);
     });
+
+
+
 
     //button
     this.friendsButton = this.addButton('friendsIcon', '', this.hud_buttonsX + 2 * this.hud_buttonW, this.hud_buttonsY, this.hud_buttonW, this.hud_buttonW, function () {
@@ -237,6 +253,10 @@ var PlayScene = {
         this.resetHUD();
         this.friendsButton.loadTexture('friendsIconSelected');
         this.selectedHUD = 2;
+
+
+        //show friends
+        this.updateFriendsHUD();
       }
     });
     this.friendsButton.fixedToCamera = true;
@@ -261,6 +281,21 @@ var PlayScene = {
         break;
     }
 
+  },
+
+  updateFriendsHUD: function () {
+    var friend = this.player.getFriend(0);
+
+    this.friendsGroup.remove(this.friendText);
+
+    this.friendText = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
+      this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
+
+    this.friendsGroup.add(this.friendText);
+    console.log(this.friendText._text);
+    this.friendText.fixedToCamera = true;
+    this.friendText.align = "left";
+    this.friendText.anchor.setTo(0, 0.5);
   },
 
   //Muestra el submenú de NEEDS/YOU/FRIENDS
