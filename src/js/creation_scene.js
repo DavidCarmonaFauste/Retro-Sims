@@ -25,9 +25,9 @@ var CreationScene = {
         this.intelligence = 0;
         this.fitness = 0;
         this.charisma = 0;
-        this.maxpoints = 5;     //puntos a repartir
+        this.maxpoints = 5; //puntos a repartir
         this.selectedStat = 'intelligence';
-        this.remainingPoints = this.maxpoints;  //puntos que quedan por repartir
+        this.remainingPoints = this.maxpoints; //puntos que quedan por repartir
 
         this.txtApperance = this.game.add.bitmapText(this.game.world.centerX, this.game.world.centerY - 200, 'arcadeGreenFont', 'Choose your appearance', 40);
         this.txtApperance.anchor.setTo(0.5, 0.5);
@@ -80,7 +80,7 @@ var CreationScene = {
         if (this.moveCamera && this.positionMoved < 600) {
             this.game.camera.y += 20;
             this.positionMoved += 20;
-           // console.log(this.positionMoved);
+            // console.log(this.positionMoved);
             if (this.positionMoved >= 600) {
                 this.moveCamera = false;
                 this.positionMoved = 0;
@@ -100,7 +100,7 @@ var CreationScene = {
                     this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
                     this.state = this.submenus[0];
                 }
-            } else if(this.state == this.submenus[0]){
+            } else if (this.state == this.submenus[0]) {
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.BACKSPACE)) {
                     name = name.substring(0, name.length - 1);
                     var sound = this.game.add.audio('keyboardBackspace');
@@ -111,18 +111,18 @@ var CreationScene = {
                     this.printText(name);
                 } else {
                     this.input.keyboard.onPressCallback = function (e) {
-                        if (!(this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) && name.length <20) { //para eviar que se pongan espacios
+                        if (!(this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) && name.length < 20) { //para eviar que se pongan espacios
                             name += e;
-                            if(Math.random() > 0.5)
+                            if (Math.random() > 0.5)
                                 var sound = this.game.add.audio('keyboard1');
-                            else 
+                            else
                                 var sound = this.game.add.audio('keyboard2');
-                                sound.volume = 0.2;
+                            sound.volume = 0.2;
                             sound.play();
                             CreationScene.printText(name);
                         }
                     };
-                } 
+                }
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) { //pasamos al submenú 3
                     this.game.world.removeAll();
@@ -133,27 +133,30 @@ var CreationScene = {
                     this.moveCamera = true;
                     this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
                     this.state = this.submenus[2];
+                    this.game.input.keyboard.onPressCallback = function () {}; //quita el callback
                 }
-            } else if(this.state == this.submenus[2]){
+            } else if (this.state == this.submenus[2]) {
                 //subir o bajar entre stats
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && this.selectedStat != 'intelligence') {
-                    if(this.selectedStat == 'fitness')  this.selectedStat = 'charisma'; else this.selectedStat = 'intelligence';
+                    if (this.selectedStat == 'fitness') this.selectedStat = 'charisma';
+                    else this.selectedStat = 'intelligence';
                 } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.DOWN) && this.selectedStat != 'fitness') {
-                    if(this.selectedStat == 'intelligence') this.selectedStat = 'charisma'; else this.selectedStat = 'fitness';
-                }else 
-                //sumar o restar uno a las stats
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.remainingPoints > 0) {
-                    this.add1();
-                } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
+                    if (this.selectedStat == 'intelligence') this.selectedStat = 'charisma';
+                    else this.selectedStat = 'fitness';
+                } else
+                    //sumar o restar uno a las stats
+                    if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.remainingPoints > 0) {
+                        this.add1();
+                    } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
                     this.sub1();
                 }
 
-                this.printStats(this.remainingPoints);   //pinta en pantalla
+                this.printStats(this.remainingPoints); //pinta en pantalla
 
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
 
                     this.creationCompleted();
-                    this.game.input.keyboard.onPressCallback = function(){}; //quita el callback
+                    this.game.input.keyboard.onPressCallback = function () {}; //quita el callback
                 }
                 this.game.input.keyboard.reset(true); //resetea el teclado
             }
@@ -161,60 +164,58 @@ var CreationScene = {
         //this.game.debug.cameraInfo(this.game.camera, 32, 32); //this.skinSelected();
     },
 
-    add1: function(){
+    add1: function () {
         console.log(this.selectedStat);
-        if(this.selectedStat == 'fitness')
+        if (this.selectedStat == 'fitness')
             this.fitness++;
-        else if(this.selectedStat == 'charisma')
+        else if (this.selectedStat == 'charisma')
             this.charisma++;
-        else if(this.selectedStat == 'intelligence')
+        else if (this.selectedStat == 'intelligence')
             this.intelligence++;
 
-            var sound = this.game.add.audio('select');
+        var sound = this.game.add.audio('select');
         sound.volume = 0.2;
         sound.play();
         this.remainingPoints--;
 
     },
 
-    sub1: function(){
+    sub1: function () {
         console.log(this.selectedStat);
         var sound = this.game.add.audio('select');
         sound.volume = 0.2;
 
-        if(this.selectedStat == 'fitness' && this.fitness > 0){
+        if (this.selectedStat == 'fitness' && this.fitness > 0) {
             this.fitness--;
             this.remainingPoints++;
             sound.play();
-        }
-        else if(this.selectedStat == 'charisma' && this.charisma > 0){
+        } else if (this.selectedStat == 'charisma' && this.charisma > 0) {
             this.charisma--;
             this.remainingPoints++;
             sound.play();
-        }
-        else if(this.selectedStat == 'intelligence' && this.intelligence > 0){
+        } else if (this.selectedStat == 'intelligence' && this.intelligence > 0) {
             this.intelligence--;
             this.remainingPoints++;
             sound.play();
         }
     },
-    centerSprite: function(s){
+    centerSprite: function (s) {
         s.anchor.setTo(0.5, 0.5);
         s.align = "center";
     },
 
-    printStats: function(remainingPoints){
+    printStats: function (remainingPoints) {
         this.game.world.removeAll();
 
-        if(this.selectedStat == 'intelligence') var arrow  = 1440;
-        else if(this.selectedStat == 'charisma') var arrow = 1540;
-        else if(this.selectedStat == 'fitness')var arrow  = 1640;
+        if (this.selectedStat == 'intelligence') var arrow = 1440;
+        else if (this.selectedStat == 'charisma') var arrow = 1540;
+        else if (this.selectedStat == 'fitness') var arrow = 1640;
         var selection = this.game.add.bitmapText(500, arrow, 'arcadeWhiteFont', '<', 40);
         selection.anchor.setTo(0, 1);
         this.centerSprite(selection);
-        var remainingTxt = this.game.add.bitmapText(400, 1375, 'arcadeWhiteFont', 'Remaining points: ' + remainingPoints , 20);
+        var remainingTxt = this.game.add.bitmapText(400, 1375, 'arcadeWhiteFont', 'Remaining points: ' + remainingPoints, 20);
         this.centerSprite(remainingTxt);
-        var statsTxt = this.game.add.bitmapText(400, 1300, 'arcadeGreenFont', 'Choose your initial stats' , 40);
+        var statsTxt = this.game.add.bitmapText(400, 1300, 'arcadeGreenFont', 'Choose your initial stats', 40);
         this.centerSprite(statsTxt);
         var intelligenceTxt = this.game.add.bitmapText(400, 1450, 'arcadeGreenFont', 'Intelligence: ', 30);
         intelligenceTxt.anchor.setTo(1, 1);
@@ -222,11 +223,11 @@ var CreationScene = {
         charismaTxt.anchor.setTo(1, 1);
         var fitnessTxt = this.game.add.bitmapText(400, 1650, 'arcadeGreenFont', 'Fitness: ', 30);
         fitnessTxt.anchor.setTo(1, 1);
-        var i = this.game.add.bitmapText(400, 1450, 'arcadeWhiteFont', ''+this.intelligence, 30);
+        var i = this.game.add.bitmapText(400, 1450, 'arcadeWhiteFont', '' + this.intelligence, 30);
         i.anchor.setTo(0, 1);
-        var f = this.game.add.bitmapText(400, 1550, 'arcadeWhiteFont', ''+this.charisma, 30);
+        var f = this.game.add.bitmapText(400, 1550, 'arcadeWhiteFont', '' + this.charisma, 30);
         f.anchor.setTo(0, 1);
-        var c = this.game.add.bitmapText(400, 1650, 'arcadeWhiteFont',''+ this.fitness, 30);
+        var c = this.game.add.bitmapText(400, 1650, 'arcadeWhiteFont', '' + this.fitness, 30);
         c.anchor.setTo(0, 1);
         var continueTxt = this.game.add.bitmapText(450, 1750, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
     },

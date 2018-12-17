@@ -39,7 +39,7 @@ var PlayScene = {
     // Empieza con NEEDS
     this.selectedHUD = 0;
 
-    this.debug = true; //Poner a true para activar los debugs de player y del tilemap
+    this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //Tilemap

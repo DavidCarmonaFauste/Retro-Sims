@@ -84,15 +84,18 @@ Player.prototype.move = function () {
     //this.animations.play('up');
     this.body.velocity.y -= this.speed;
     this.dir.x = 0; this.dir.y = -1;
-  } else if (this.controls.down.isDown) { //DOWN
+  }  
+  if (this.controls.down.isDown) { //DOWN
     //this.animations.play('down');
     this.body.velocity.y += this.speed;
     this.dir.x = 0; this.dir.y = 1;
-  } else if (this.controls.left.isDown) { //LEFT
+  }  
+  if (this.controls.left.isDown) { //LEFT
     //this.animations.play('left');
     this.body.velocity.x -= this.speed;
     this.dir.x = -1; this.dir.y = 0;
-  } else if (this.controls.right.isDown) { //RIGHT
+  }  
+  if (this.controls.right.isDown) { //RIGHT
     //this.animations.play('right');
     this.body.velocity.x += this.speed;
     this.dir.x = 1; this.dir.y = 0;
