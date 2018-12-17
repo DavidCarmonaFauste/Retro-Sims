@@ -110,6 +110,10 @@ this.furni.scale.setTo(0.25,0.25);
 this.furni.anchor.setTo(0.5,0.5);
     }
 
+
+    
+    this.hud_playerMoney.setText(this.player.money + " €");
+
   },
 
   spawnSim: function (index) {
@@ -162,6 +166,11 @@ this.furni.anchor.setTo(0.5,0.5);
     this.hud_playerName = this.game.add.bitmapText(this.hud_x, this.hud_y, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
     this.hud_playerName.align = "left";
     this.hud_playerName.fixedToCamera = true;
+
+    //player's money
+    this.hud_playerMoney = this.game.add.bitmapText(32, 32, 'arcadeBlackFont', this.player.money, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
+    this.hud_playerMoney.align = "left";
+    this.hud_playerMoney.fixedToCamera = true;
 
 
     //SUBMENÚS:  NEEDS, YOU, FRIENDS

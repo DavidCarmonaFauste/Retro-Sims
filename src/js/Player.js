@@ -82,7 +82,12 @@ Player.prototype.update = function () {
   if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
     this.needs.fatigue++;
     console.log(this.needs.fatigue);
-  };
+  }
+  if (this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
+    this.money-=100;
+    
+    console.log(this.money);
+  }
 }
 
   Player.prototype.move = function () {
