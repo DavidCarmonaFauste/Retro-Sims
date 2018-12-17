@@ -1,3 +1,5 @@
+var Neighbour = require('./Neighbour');
+
 function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, money, job) {
   //Mapa
   this.map = map;
@@ -23,6 +25,7 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   };
   //Lista de amigos
   this.friends = [];
+  this.numFriends = 0;
   //Dinero
   this.money = 10000;
   //Trabajo
@@ -85,22 +88,26 @@ Player.prototype.move = function () {
   if (this.controls.up.isDown) { //UP
     //this.animations.play('up');
     this.body.velocity.y -= this.speed;
-    this.dir.x = 0; this.dir.y = -1;
-  }  
+    this.dir.x = 0;
+    this.dir.y = -1;
+  }
   if (this.controls.down.isDown) { //DOWN
     //this.animations.play('down');
     this.body.velocity.y += this.speed;
-    this.dir.x = 0; this.dir.y = 1;
-  }  
+    this.dir.x = 0;
+    this.dir.y = 1;
+  }
   if (this.controls.left.isDown) { //LEFT
     //this.animations.play('left');
     this.body.velocity.x -= this.speed;
-    this.dir.x = -1; this.dir.y = 0;
-  }  
+    this.dir.x = -1;
+    this.dir.y = 0;
+  }
   if (this.controls.right.isDown) { //RIGHT
     //this.animations.play('right');
     this.body.velocity.x += this.speed;
-    this.dir.x = 1; this.dir.y = 0;
+    this.dir.x = 1;
+    this.dir.y = 0;
   }
 
   //console.log(this.dir.x + " " + this.dir.y);
@@ -160,6 +167,25 @@ Player.prototype.interact = function (map) {
 
 Player.prototype.getDir = function () {
   return this.dir;
+}
+
+Player.prototype.updateFriendship = function (neighbour) {
+  var neighName = neighbour.name;
+  var neighFriendship = neighbour.friendship;
+
+
+
+  this.friends[this.numFriends] = {
+    name: neighName,
+    friendship: neighFriendship
+  };
+
+  console.log(this.friends[0]);
+}
+
+Player.prototype.isFriend = function () {
+
+
 }
 
 module.exports = Player;

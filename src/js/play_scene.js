@@ -39,7 +39,7 @@ var PlayScene = {
     // Empieza con NEEDS
     this.selectedHUD = 0;
 
-    this.debug = true; //Poner a true para activar los debugs de player y del tilemap
+    this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //Tilemap
@@ -56,7 +56,7 @@ var PlayScene = {
     this.camera.follow(this.player);
 
 
-      this.neig = new Neighbour(this.game, 'sim5', 0, this.game.initialY);
+      this.neig = new Neighbour(this.game, 'sim5', 0, this.game.initialY, 'Eric Allen');
 
 
     this.createHUD();
@@ -78,7 +78,9 @@ var PlayScene = {
     this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
 
     if(this.checkPlayerOverlap(this.player, this.neig))
-      console.log('overlaped');
+      this.neig.setTalking(true);
+      
+    this.player.updateFriendship(this.neig);
   },
 
   //RENDER
@@ -98,6 +100,8 @@ var PlayScene = {
 
     return Phaser.Rectangle.intersects(playerBounds, simBounds);
   },
+
+  
 
   //Crea la interfaz del
   createHUD: function () {
@@ -323,4 +327,5 @@ var PlayScene = {
     return button;
   }
 };
+
 module.exports = PlayScene;
