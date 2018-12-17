@@ -60,6 +60,9 @@ var PlayScene = {
 
 
     this.createHUD();
+
+
+    this.game.input.mouse.capture = true;
   },
 
   //UPDATE
@@ -82,8 +85,36 @@ var PlayScene = {
       if (this.selectedHUD == 2)
         this.updateFriendsHUD();
     }
+    if (this.neig2 != undefined && this.checkPlayerOverlap(this.player, this.neig2)) {
+      this.neig2.setTalking(true);
+      if (this.selectedHUD == 2)
+        this.updateFriendsHUD();
+    }
 
     this.player.updateFriendship(this.neig);
+    if(this.neig2 != undefined )
+      this.player.updateFriendship(this.neig2);
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+      this.spawnSim(4);
+      this.game.input.keyboard.reset(true);
+      this.player.numFriends++;
+      
+    }
+
+    if(this.game.input.activePointer.leftButton.isDown){
+      this.furni = this.game.add.sprite(this.game.input.mousePointer.x,this.game.input.mousePointer.y,'furni');
+      console.log(this.game.input.mousePointer.x,this.game.input.mousePointer.y);
+this.furni.fixedToCamera = true;
+this.furni.scale.setTo(0.25,0.25);
+this.furni.anchor.setTo(0.5,0.5);
+    }
+
+  },
+
+  spawnSim: function (index) {
+    this.neig2 = new Neighbour(this.game, 'sim' + index, 0, this.game.initialY + 60, 'Clara Lawson');
+    this.player.setFriend(this.neig2, 1);
   },
 
   //RENDER
@@ -227,15 +258,11 @@ var PlayScene = {
     //group
     this.friendsGroup = this.game.add.group();
 
-    /*for(var i = 0; i < this.player.numFriends + 1; i++){
-
-    }*/
-
 
     //var friend = this.player.getFriend(0);
-    this.friendText = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
+    /*this.friendText1 = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
       this.hud_buttonsY, 'arcadeBlackFont',
-      "AAAA", 20);
+      "AAAA", 20);*/
 
     this.friendsGroup.forEach(function (elem) {
       elem.fixedToCamera = true;
@@ -284,18 +311,43 @@ var PlayScene = {
   },
 
   updateFriendsHUD: function () {
-    var friend = this.player.getFriend(0);
 
-    this.friendsGroup.remove(this.friendText);
+    for (var i = 0; i < this.player.numFriends + 1; i++) {
 
-    this.friendText = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
-      this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
+      var friend = this.player.getFriend(i);
 
-    this.friendsGroup.add(this.friendText);
-    console.log(this.friendText._text);
-    this.friendText.fixedToCamera = true;
-    this.friendText.align = "left";
-    this.friendText.anchor.setTo(0, 0.5);
+      this.friendsGroup.remove(this.friendText);
+
+      this.friendText = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
+        this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
+
+      this.friendsGroup.add(this.friendText);
+      //console.log(this.friendText._text);
+      this.friendText.fixedToCamera = true;
+      this.friendText.align = "left";
+
+      this.friendText.anchor.setTo(0, 0.5);
+    }
+  },
+
+  //TEMPORAL///////////////////////////
+  updateFriendsHUD2: function () {
+
+    
+
+      var friend = this.player.getFriend(1);
+
+      //this.friendsGroup.remove(this.friendText);
+
+      this.friendText2 = this.game.add.bitmapText((this.youIconX + this.youTextOffset)*2,
+        this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
+
+      this.friendsGroup.add(this.friendText2);
+      //console.log(this.friendText._text);
+      this.friendText2.fixedToCamera = true;
+      this.friendText2.align = "left";
+
+      this.friendText2.anchor.setTo(0, 0.5);
   },
 
   //Muestra el submenú de NEEDS/YOU/FRIENDS

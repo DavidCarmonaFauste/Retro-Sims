@@ -56,6 +56,9 @@ var PreloaderScene = {
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('tileset', 'images/tiles/tilemaps/tileset64.png');
 
+    //temporal
+    this.game.load.image('furni', 'images/tiles/worktop.png'); 
+
     // Fuentes
     this.game.load.bitmapFont('arcadeWhiteFont', 'fonts/arcadebmfWhite.png', 'fonts/arcadebmf.xml');
     this.game.load.bitmapFont('arcadeBlackFont', 'fonts/arcadebmfBlack.png', 'fonts/arcadebmf.xml');
