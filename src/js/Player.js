@@ -83,7 +83,7 @@ Player.prototype.update = function () {
     this.needs.fatigue++;
     console.log(this.needs.fatigue);
   }
-  if (this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
+  if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
     this.money-=100;
     
     console.log(this.money);

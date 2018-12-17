@@ -42,6 +42,7 @@ var PlayScene = {
     this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
+    this.editMode = false;
     //Tilemap
     this.map = new Map(this);
 
@@ -92,26 +93,32 @@ var PlayScene = {
     }
 
     this.player.updateFriendship(this.neig);
-    if(this.neig2 != undefined )
+    if (this.neig2 != undefined)
       this.player.updateFriendship(this.neig2);
 
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
       this.spawnSim(4);
       this.game.input.keyboard.reset(true);
       this.player.numFriends++;
-      
+
     }
 
-    if(this.game.input.activePointer.leftButton.isDown){
-      this.furni = this.game.add.sprite(this.game.input.mousePointer.x,this.game.input.mousePointer.y,'furni');
-      console.log(this.game.input.mousePointer.x,this.game.input.mousePointer.y);
-this.furni.fixedToCamera = true;
-this.furni.scale.setTo(0.25,0.25);
-this.furni.anchor.setTo(0.5,0.5);
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
+      this.editMode = true;
+
+    }
+
+    if (this.editMode && this.game.input.activePointer.leftButton.isDown) {
+      this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
+      console.log(this.game.input.mousePointer.x, this.game.input.mousePointer.y);
+      this.furni.fixedToCamera = true;
+      this.furni.scale.setTo(0.25, 0.25);
+      this.furni.anchor.setTo(0.5, 0.5);
+      this.player.money -= 75;
     }
 
 
-    
+
     this.hud_playerMoney.setText(this.player.money + " €");
 
   },
@@ -342,21 +349,21 @@ this.furni.anchor.setTo(0.5,0.5);
   //TEMPORAL///////////////////////////
   updateFriendsHUD2: function () {
 
-    
 
-      var friend = this.player.getFriend(1);
 
-      //this.friendsGroup.remove(this.friendText);
+    var friend = this.player.getFriend(1);
 
-      this.friendText2 = this.game.add.bitmapText((this.youIconX + this.youTextOffset)*2,
-        this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
+    //this.friendsGroup.remove(this.friendText);
 
-      this.friendsGroup.add(this.friendText2);
-      //console.log(this.friendText._text);
-      this.friendText2.fixedToCamera = true;
-      this.friendText2.align = "left";
+    this.friendText2 = this.game.add.bitmapText((this.youIconX + this.youTextOffset) * 2,
+      this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
 
-      this.friendText2.anchor.setTo(0, 0.5);
+    this.friendsGroup.add(this.friendText2);
+    //console.log(this.friendText._text);
+    this.friendText2.fixedToCamera = true;
+    this.friendText2.align = "left";
+
+    this.friendText2.anchor.setTo(0, 0.5);
   },
 
   //Muestra el submenú de NEEDS/YOU/FRIENDS
