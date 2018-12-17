@@ -21,6 +21,8 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
     fitness: fitness,
     charisma: charisma
   };
+  //Lista de amigos
+  this.friends = [];
   //Dinero
   this.money = 10000;
   //Trabajo

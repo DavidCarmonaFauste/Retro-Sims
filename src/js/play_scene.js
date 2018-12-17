@@ -31,7 +31,7 @@ var PlayScene = {
     }*/
 
     //Valores iniciales
-    this.initialX = this.game.world.centerX + 910, this.initialY = 3500;
+    this.game.initialX = this.game.world.centerX + 910, this.game.initialY = 3500;
     //Información que se muestra en el hud:
     // 0: NEEDS
     // 1: YOU
@@ -39,7 +39,7 @@ var PlayScene = {
     // Empieza con NEEDS
     this.selectedHUD = 0;
 
-    this.debug = false; //Poner a true para activar los debugs de player y del tilemap
+    this.debug = true; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     //Tilemap
@@ -50,10 +50,14 @@ var PlayScene = {
     //Creación del jugador
     this.player = new Player(
       this.game, this.map, 'sim' + this.playerParams.simIndex,
-      this.initialX, this.initialY,
-      this.playerParams.name, 10, 10, 10);
+      this.game.initialX, this.game.initialY,
+      this.playerParams.name, this.playerParams.intelligence, this.playerParams.fitness, this.playerParams.charisma);
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
+
+
+      this.neig = new Neighbour(this.game, 'sim5', 0, this.game.initialY);
+
 
     this.createHUD();
   },
@@ -72,17 +76,27 @@ var PlayScene = {
     this.hungerBar.width = this.player.needs.hunger / this.player.maxNeed * this.barWidth;
     this.sleepBar.width = this.player.needs.fatigue / this.player.maxNeed * this.barWidth;
     this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
+
+    if(this.checkPlayerOverlap(this.player, this.neig))
+      console.log('overlaped');
   },
 
   //RENDER
   render: function () {
     //Debugs
     if (this.debug) {
-      this.game.debug.spriteInfo(this.player, 32, 32);
+      this.game.debug.spriteInfo(this.neig, 32, 32);
       this.game.debug.body(this.player);
     }
     //this.game.debug.spriteInfo(this.hud_mainBox, 32, 80);
     //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
+  },
+
+  checkPlayerOverlap: function(player, sim){
+    var playerBounds = player.getBounds();
+    var simBounds = sim.getBounds();
+
+    return Phaser.Rectangle.intersects(playerBounds, simBounds);
   },
 
   //Crea la interfaz del
