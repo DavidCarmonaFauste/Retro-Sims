@@ -51,18 +51,47 @@ var PlayScene = {
     this.player = new Player(
       this.game, this.map, 'sim' + this.playerParams.simIndex,
       this.initialX, this.initialY,
-      this.playerParams.name, 10, 10, 10);
+      this.playerParams.name, 2, 2, 1);
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
 
     this.createHUD();
-  },
+
+        // CREACIÓN DE OBJETOS - TEMPORAL
+        this.s;
+  },  
 
   //UPDATE
   update: function () {
     //Colisiones
     this.game.physics.arcade.collide(this.player, this.map.groundWallLayer);
     this.game.physics.arcade.collide(this.player, this.map.objectsLayer);
+
+    // CREACIÓN DE OBJETOS - TEMPORAL
+    if(this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)){
+      this.s = this.game.add.sprite(this.game.world.centerX , this.game.world.centerY, 'toiletIcon');
+      this.game.physics.enable(this.s, Phaser.Physics.ARCADE);
+      this.game.input.keyboard.reset(true); 
+    }
+    //  only move when you click
+    if (this.game.input.mousePointer.isDown && this.s!= null)
+    {
+      console.log('asdaffas')
+        //  400 is the speed it will move towards the mouse
+        this.game.physics.arcade.moveToPointer(this.s, 400);
+
+        //  if it's overlapping the mouse, don't move any more
+        if (Phaser.Rectangle.contains(this.s.body, this.game.input.x, this.game.input.y))
+        {
+            this.s.body.velocity.setTo(0, 0);
+        }
+    }
+    else if(this.s!=null)
+    {
+        this.s.body.velocity.setTo(0, 0);
+    }
+    // CREACIÓN DE OBJETOS - TEMPORAL
+
     //Desactiva las paredes si el jugador está en la casa
     if (this.map.isInside(this.player.x, this.player.y)) {
       this.map.setWalls(false);
