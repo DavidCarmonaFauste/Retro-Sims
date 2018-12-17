@@ -48,10 +48,16 @@ var PreloaderScene = {
     this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png'); 
     this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png'); 
     this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png'); 
+    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png'); 
+    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png'); 
+    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('tileset', 'images/tiles/tilemaps/tileset64.png');
+
+    //temporal
+    this.game.load.image('furni', 'images/tiles/worktop.png'); 
 
     // Fuentes
     this.game.load.bitmapFont('arcadeWhiteFont', 'fonts/arcadebmfWhite.png', 'fonts/arcadebmf.xml');

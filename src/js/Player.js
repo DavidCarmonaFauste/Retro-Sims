@@ -1,3 +1,5 @@
+var Neighbour = require('./Neighbour');
+
 function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, money, job) {
   //Mapa
   this.map = map;
@@ -21,6 +23,9 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
     fitness: fitness,
     charisma: charisma
   };
+  //Lista de amigos
+  this.friends = [];
+  this.numFriends = 0;
   //Dinero
   this.money = 10000;
   //Trabajo
@@ -74,90 +79,130 @@ Player.prototype.update = function () {
     this.needs.fatigue--;
     console.log(this.needs.fatigue);
   }
-};
+  if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
+    this.needs.fatigue++;
+    console.log(this.needs.fatigue);
+  }
+  if (this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
+    this.money-=100;
+    
+    console.log(this.money);
+  }
+}
 
-Player.prototype.move = function () {
-  this.body.velocity.x = 0;
-  this.body.velocity.y = 0;
+  Player.prototype.move = function () {
+    this.body.velocity.x = 0;
+    this.body.velocity.y = 0;
 
-  if (this.controls.up.isDown) { //UP
-    //this.animations.play('up');
-    this.body.velocity.y -= this.speed;
-    this.dir.x = 0; this.dir.y = -1;
-  }  
-  if (this.controls.down.isDown) { //DOWN
-    //this.animations.play('down');
-    this.body.velocity.y += this.speed;
-    this.dir.x = 0; this.dir.y = 1;
-  }  
-  if (this.controls.left.isDown) { //LEFT
-    //this.animations.play('left');
-    this.body.velocity.x -= this.speed;
-    this.dir.x = -1; this.dir.y = 0;
-  }  
-  if (this.controls.right.isDown) { //RIGHT
-    //this.animations.play('right');
-    this.body.velocity.x += this.speed;
-    this.dir.x = 1; this.dir.y = 0;
+    if (this.controls.up.isDown) { //UP
+      //this.animations.play('up');
+      this.body.velocity.y -= this.speed;
+      this.dir.x = 0;
+      this.dir.y = -1;
+    }
+    if (this.controls.down.isDown) { //DOWN
+      //this.animations.play('down');
+      this.body.velocity.y += this.speed;
+      this.dir.x = 0;
+      this.dir.y = 1;
+    }
+    if (this.controls.left.isDown) { //LEFT
+      //this.animations.play('left');
+      this.body.velocity.x -= this.speed;
+      this.dir.x = -1;
+      this.dir.y = 0;
+    }
+    if (this.controls.right.isDown) { //RIGHT
+      //this.animations.play('right');
+      this.body.velocity.x += this.speed;
+      this.dir.x = 1;
+      this.dir.y = 0;
+    }
+
+    //console.log(this.dir.x + " " + this.dir.y);
   }
 
-  //console.log(this.dir.x + " " + this.dir.y);
-}
-
-Player.prototype.interactWithSink = function () {
-  console.log("Washing my hands");
-}
-
-Player.prototype.interactWithToilet = function () {
-  console.log("Peeing");
-  this.needs.pee = this.maxNeed;
-}
-
-Player.prototype.interactWithFridge = function () {
-  console.log("Getting something to eat");
-  this.needs.hunger = this.maxNeed;
-}
-
-Player.prototype.interactWithMailbox = function () {
-  console.log("Checking my mails");
-}
-
-Player.prototype.interactWithBed = function () {
-  this.needs.fatigue = this.maxNeed;
-  console.log("Going to sleep, good night");
-}
-
-Player.prototype.interact = function (map) {
-  var type = map.getTileType(this);
-
-  switch (type) {
-    case "sink":
-      this.interactWithSink();
-      break;
-    case "toilet":
-      this.interactWithToilet();
-      break;
-    case "fridge":
-      this.interactWithFridge();
-      break;
-    case "mailbox":
-      this.interactWithMailbox();
-      break;
-    case "bed":
-      this.interactWithBed();
-      break;
-    default:
-      type = "Not an object"
-      break;
+  Player.prototype.interactWithSink = function () {
+    console.log("Washing my hands");
   }
 
-  if (type != "Not an object")
-    this.game.input.keyboard.reset(true);
+  Player.prototype.interactWithToilet = function () {
+    console.log("Peeing");
+    this.needs.pee = this.maxNeed;
+  }
 
-}
+  Player.prototype.interactWithFridge = function () {
+    console.log("Getting something to eat");
+    this.needs.hunger = this.maxNeed;
+  }
 
-Player.prototype.getDir = function () {
-  return this.dir;
-}
+  Player.prototype.interactWithMailbox = function () {
+    console.log("Checking my mails");
+  }
+
+  Player.prototype.interactWithBed = function () {
+    this.needs.fatigue = this.maxNeed;
+    console.log("Going to sleep, good night");
+  }
+
+  Player.prototype.interact = function (map) {
+    var type = map.getTileType(this);
+
+    switch (type) {
+      case "sink":
+        this.interactWithSink();
+        break;
+      case "toilet":
+        this.interactWithToilet();
+        break;
+      case "fridge":
+        this.interactWithFridge();
+        break;
+      case "mailbox":
+        this.interactWithMailbox();
+        break;
+      case "bed":
+        this.interactWithBed();
+        break;
+      default:
+        type = "Not an object"
+        break;
+    }
+
+    if (type != "Not an object")
+      this.game.input.keyboard.reset(true);
+
+  }
+
+  Player.prototype.getDir = function () {
+    return this.dir;
+  }
+
+  Player.prototype.updateFriendship = function (neighbour) {
+    var neighName = neighbour.name;
+    var neighFriendship = neighbour.friendship;
+
+
+
+    this.friends[this.numFriends] = {
+      name: neighName,
+      friendship: neighFriendship
+    };
+
+    //console.log(this.friends[0]);
+  }
+
+  Player.prototype.getFriend = function (index) {
+
+    return this.friends[index];
+  }
+
+  Player.prototype.setFriend = function(neighbour, index){
+    this.friends[index] = {
+      name: neighbour.name,
+      friendship: neighbour.friendship
+    };
+  }
+
 
 module.exports = Player;
