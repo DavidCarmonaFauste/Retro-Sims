@@ -60,6 +60,9 @@ var PreloaderScene = {
 
     // Audio
     this.game.load.audio('tap', 'audio/tap.wav');
+    this.game.load.audio('keyboard1', 'audio/keyboard1.wav');
+    this.game.load.audio('keyboard2', 'audio/keyboard2.wav');
+    this.game.load.audio('keyboardBackspace', 'audio/keyboardBackspace.wav');
     this.game.load.audio('scroll', 'audio/scroll.wav');
     this.game.load.audio('select', 'audio/selection.wav');
     this.game.load.audio('creationCompleted', 'audio/creationCompleted.wav');
