@@ -31,7 +31,9 @@ var PreloaderScene = {
       this.game.load.image('sim' + i, 'images/sims/Sim' + i + '.png');
     this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
-    this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
+    //this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
+    this.game.load.image('censor', 'images/censorship.png'); //Imagen usada para censurar
+
 
     // Imágenes del HUD
     this.game.load.image('hudBox', 'images/hud/hudBox.png'); //caja básica de la interfaz
@@ -72,7 +74,9 @@ var PreloaderScene = {
     this.game.load.audio('scroll', 'audio/scroll.wav');
     this.game.load.audio('select', 'audio/selection.wav');
     this.game.load.audio('creationCompleted', 'audio/creationCompleted.wav');
-    this.game.load.audio('mainTheme', 'audio/mainTheme.mp3')
+    this.game.load.audio('mainTheme', 'audio/mainTheme.mp3'); //MAIN THEME
+    this.game.load.audio('pee', 'audio/peeing.mp3');
+    this.game.load.audio('flush', 'audio/flush.wav');
   },
 
   create: function () {

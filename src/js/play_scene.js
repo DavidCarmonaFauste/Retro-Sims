@@ -32,12 +32,22 @@ var PlayScene = {
 
     //Valores iniciales
     this.game.initialX = this.game.world.centerX + 910, this.game.initialY = 3500;
+    this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
+    this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
+    this.timeCounter = {
+      hour: 12,
+      minute: 0
+    };
+    this.game.time.events.loop(500, this.updateTimeCounter, this);
+
     //Información que se muestra en el hud:
     // 0: NEEDS
     // 1: YOU
     // 2: FRIENDS
     // Empieza con NEEDS
     this.selectedHUD = 0;
+    //Tiempo del juego
+
 
     this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -77,10 +87,9 @@ var PlayScene = {
     } else
       this.map.setWalls(true);
 
-    this.hungerBar.width = this.player.needs.hunger / this.player.maxNeed * this.barWidth;
-    this.sleepBar.width = this.player.needs.fatigue / this.player.maxNeed * this.barWidth;
-    this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
 
+
+    //INTERACCIÓN CON VECINOS
     if (this.checkPlayerOverlap(this.player, this.neig)) {
       this.neig.setTalking(true);
       if (this.selectedHUD == 2)
@@ -102,25 +111,52 @@ var PlayScene = {
       this.player.numFriends++;
 
     }
+    //////////////////////////////
 
+    //Activar el modo edición
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
       this.editMode = true;
 
     }
 
     if (this.editMode && this.game.input.activePointer.leftButton.isDown) {
-      this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
+      /*this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
       console.log(this.game.input.mousePointer.x, this.game.input.mousePointer.y);
       this.furni.fixedToCamera = true;
       this.furni.scale.setTo(0.25, 0.25);
       this.furni.anchor.setTo(0.5, 0.5);
-      this.player.money -= 75;
+      this.player.money -= 75;*/
+
     }
 
+    this.updateNeeds();
 
+    //this.hud_playerMoney.setText(this.player.money);
+    this.timeCounterText.setText(this.getTimeText());
 
-    this.hud_playerMoney.setText(this.player.money + " €");
+  },
 
+  //Actualiza la longitud de las barras de necesidad del hud y reduce todas las necesidades cada X minutos(minutos del juego)
+  updateNeeds: function () {
+    //reduce los puntos de necesidad cada needsRate minutos del juego
+    if (this.timeCounter.minute % this.needsRate == 0) {
+      this.player.updateNeeds();
+    }
+
+    //Actualiza las barras del hud
+    this.hungerBar.width = this.player.needs.hunger / this.player.maxNeed * this.barWidth;
+    this.sleepBar.width = this.player.needs.fatigue / this.player.maxNeed * this.barWidth;
+    this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
+  },
+
+  //actualiza el contador de tiempo adecuadamente
+  updateTimeCounter: function () {
+    if (this.timeCounter.minute < 59)
+      this.timeCounter.minute++;
+    else {
+      this.timeCounter.hour++;
+      this.timeCounter.minute = 0;
+    }
   },
 
   spawnSim: function (index) {
@@ -147,8 +183,9 @@ var PlayScene = {
   },
 
 
-
-  //Crea la interfaz del
+  ////////////////////////////////////////////////////////////
+  //                        INTERFAZ                       //
+  //////////////////////////////////////////////////////////
   createHUD: function () {
     //main hud box
     this.hud_mainBox = this.game.add.sprite(window.innerWidth - 400, window.innerHeight + 120, 'hudBox');
@@ -167,6 +204,7 @@ var PlayScene = {
     this.hud_icons_x = this.hud_x - 40;
     this.hud_icons_offset = 50;
     this.barWidth = 85;
+    this.timeCounter_offset = 116;
     //this.hud_barOffset = 
 
     //player's name
@@ -179,6 +217,13 @@ var PlayScene = {
     this.hud_playerMoney.align = "left";
     this.hud_playerMoney.fixedToCamera = true;
 
+    //time counter
+    this.timeCounterText = this.game.add.bitmapText(
+      window.innerWidth - this.timeCounter_offset, 32, 'arcadeBlackFont',
+      this.getTimeText(), //muestra el tiempo con formato: 00:00
+      20);
+    this.timeCounterText.align = "left";
+    this.timeCounterText.fixedToCamera = true;
 
     //SUBMENÚS:  NEEDS, YOU, FRIENDS
     //  NEEDS
@@ -308,6 +353,10 @@ var PlayScene = {
     this.hideGroup(this.youGroup);
     this.hideGroup(this.friendsGroup);
     this.showActualMenu();
+  },
+
+  getTimeText: function () {
+    return ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
   },
 
   //deselecciona el submenú actual del hud
