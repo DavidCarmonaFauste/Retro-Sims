@@ -43,7 +43,9 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.friends = [];
   this.numFriends = 0;
   //Dinero
-  this.money = 10000;
+  this.money = 5000;
+  this.exchangeTimer = this.game.time.create(true); //Timer para hacer que desaparezca el texto informativo de los ingresos/gastos
+  this.foodPrice = 10;
   //Trabajo
   this.job = 'unemployed';
   //Nombre
@@ -89,8 +91,16 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.peeSound.volume = 0.5;
 
   this.flushSound = this.game.add.audio('flush');
-  this.peeSound.volume = 0.5;
+  //this.flushSound.volume = 0.5;
 
+  this.eatingSound = this.game.add.audio('eating');
+  this.eatingSound.volume = 0.5;
+
+  this.paySound = this.game.add.audio('pay');
+  this.paySound.volume = 0.5;
+  this.paySound.onStop.add(function () {
+    this.eatingSound.play();
+  }, this);
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -108,23 +118,21 @@ Player.prototype.update = function () {
         this.interact(this.map);
       }
       break;
-    case 'peeing': //PEEING
-      //aumenta la necesidad pee hasta el máximo
-      if (this.needs.pee < this.maxNeed) {
-        if (this.needs.pee + this.needIncreaseAmount <= this.maxNeed)
-          this.needs.pee += this.needIncreaseAmount;
-        else
-          this.needs.pee = this.maxNeed;
 
-      } else{
-        this.censor.visible = false;
-        this.peeSound.stop();
-        this.flushSound.play();
-        this.currentState = 'active';
-        this.stateMachine.pop();
-      }
+    case 'peeing': //PEEING
+      this.peeingState();
       break;
 
+    case 'eating': //EATING
+      this.eatingState();
+      break;
+
+  }
+
+  if (this.exchangeTimer.ms >= 750) {
+    this.exchangeTimer.stop();
+    //this.exchangeTimer.start();
+    this.exchangeText.visible = false;
   }
 
   if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
@@ -140,6 +148,43 @@ Player.prototype.update = function () {
     
     console.log(this.money);
   }*/
+}
+
+Player.prototype.peeingState = function () {
+  //aumenta la necesidad pee hasta el máximo
+  if (this.needs.pee < this.maxNeed) {
+    if (this.needs.pee + this.needIncreaseAmount <= this.maxNeed)
+      this.needs.pee += this.needIncreaseAmount;
+    else
+      this.needs.pee = this.maxNeed;
+
+  } else {
+    this.censor.visible = false;
+    this.peeSound.stop();
+    this.flushSound.play();
+    this.currentState = 'active';
+    this.stateMachine.pop();
+  }
+}
+
+Player.prototype.eatingState = function () {
+  //aumenta la necesidad hunger hasta el máximo
+  if (this.needs.hunger < this.maxNeed) {
+    if (this.needs.hunger + this.needIncreaseAmount <= this.maxNeed)
+      this.needs.hunger += this.needIncreaseAmount;
+    else
+      this.needs.hunger = this.maxNeed;
+
+  } else {
+    this.eatingSound.loop = false;
+    this.eatingSound.stop();
+    this.currentState = 'active';
+    this.stateMachine.pop();
+  }
+}
+
+Player.prototype.sleepingState = function () {
+
 }
 
 Player.prototype.move = function () {
@@ -180,7 +225,7 @@ Player.prototype.interactWithSink = function () {
 
 Player.prototype.interactWithToilet = function () {
   console.log("Peeing");
-  
+
   this.censor.visible = true;
   this.peeSound.play();
   this.currentState = 'peeing';
@@ -190,7 +235,15 @@ Player.prototype.interactWithToilet = function () {
 
 Player.prototype.interactWithFridge = function () {
   console.log("Getting something to eat");
-  this.needs.hunger = this.maxNeed;
+
+  this.eatingSound.loop = true;
+
+  this.showExchange(-this.foodPrice);
+  this.money -= this.foodPrice;
+  this.paySound.play();
+  this.currentState = 'eating';
+  this.stateMachine.push(this.currentState);
+  //this.needs.hunger = this.maxNeed;
 }
 
 Player.prototype.interactWithMailbox = function () {
@@ -231,9 +284,35 @@ Player.prototype.interact = function (map) {
 
 }
 
-Player.prototype.getDir = function () {
-  return this.dir;
-}
+
+
+//Muestra por pantalla el ingreso/pérdida de dinero y actualiza hud_playerMoney
+//Esta función solo actualiza la representación del dinero
+Player.prototype.showExchange = function (value) {
+    //Actualiza la posición del icono del dinero (por si cambia el número de dígitos)
+
+    var x = 100 + 16 * this.money.toString().length;
+    var y = 32;
+    this.exchangeText;
+
+    if (value > 0) { //INGRESO
+      this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
+    } else { //GASTO
+      this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
+    }
+    this.exchangeText.align = "left";
+    this.exchangeText.fixedToCamera = true;
+
+    this.exchangeTimer = this.game.time.create(true);
+    this.exchangeTimer.start();
+
+
+
+  },
+
+  Player.prototype.getDir = function () {
+    return this.dir;
+  }
 
 Player.prototype.updateFriendship = function (neighbour) {
   var neighName = neighbour.name;

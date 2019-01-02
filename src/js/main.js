@@ -46,6 +46,7 @@ var PreloaderScene = {
     this.game.load.image('hungerIcon', 'images/hud/hungerIcon.png'); //icono necesidad: HUNGER
     this.game.load.image('toiletIcon', 'images/hud/toiletIcon.png'); //icono necesidad: TOILET
     this.game.load.image('sleepIcon', 'images/hud/sleepIcon.png'); //icono necesidad: SLEEP
+    this.game.load.image('moneyIcon', 'images/hud/coinIcon.png'); //icono del dinero
     this.game.load.image('greenBox', 'images/hud/greenBox.png'); //cuadrado verde usado para las barras de necesidad
     this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png'); 
     this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png'); 
@@ -65,6 +66,7 @@ var PreloaderScene = {
     this.game.load.bitmapFont('arcadeWhiteFont', 'fonts/arcadebmfWhite.png', 'fonts/arcadebmf.xml');
     this.game.load.bitmapFont('arcadeBlackFont', 'fonts/arcadebmfBlack.png', 'fonts/arcadebmf.xml');
     this.game.load.bitmapFont('arcadeGreenFont', 'fonts/arcadebmfGreenSpecial.png', 'fonts/arcadebmf.xml');
+    this.game.load.bitmapFont('arcadeRedFont', 'fonts/arcadebmfRed.png', 'fonts/arcadebmf.xml');
 
     // Audio
     this.game.load.audio('tap', 'audio/tap.wav');
@@ -77,6 +79,8 @@ var PreloaderScene = {
     this.game.load.audio('mainTheme', 'audio/mainTheme.mp3'); //MAIN THEME
     this.game.load.audio('pee', 'audio/peeing.mp3');
     this.game.load.audio('flush', 'audio/flush.wav');
+    this.game.load.audio('pay', 'audio/pay.wav');
+    this.game.load.audio('eating', 'audio/eating.wav');
   },
 
   create: function () {

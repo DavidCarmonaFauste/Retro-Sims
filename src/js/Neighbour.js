@@ -85,7 +85,6 @@ Neighbour.prototype.talk = function () {
     this.inConversation = true;
   }
   if (this.dialogtimer.ms >= 6000) {
-    console.log(this.dialogtimer.ms);
     this.dialogtimer.stop();
     this.dialogtimer.start();
     this.inConversation = false;

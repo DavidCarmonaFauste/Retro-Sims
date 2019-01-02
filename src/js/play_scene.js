@@ -38,7 +38,7 @@ var PlayScene = {
       hour: 12,
       minute: 0
     };
-    this.game.time.events.loop(500, this.updateTimeCounter, this);
+    this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
 
     //Información que se muestra en el hud:
     // 0: NEEDS
@@ -131,7 +131,7 @@ var PlayScene = {
 
     this.updateNeeds();
 
-    //this.hud_playerMoney.setText(this.player.money);
+    this.hud_playerMoney.setText(this.player.money);
     this.timeCounterText.setText(this.getTimeText());
 
   },
@@ -154,7 +154,10 @@ var PlayScene = {
     if (this.timeCounter.minute < 59)
       this.timeCounter.minute++;
     else {
-      this.timeCounter.hour++;
+      if(this.timeCounter.hour < 23)
+        this.timeCounter.hour++;
+        else
+        this.timeCounter.hour = 0;
       this.timeCounter.minute = 0;
     }
   },
@@ -216,6 +219,12 @@ var PlayScene = {
     this.hud_playerMoney = this.game.add.bitmapText(32, 32, 'arcadeBlackFont', this.player.money, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
     this.hud_playerMoney.align = "left";
     this.hud_playerMoney.fixedToCamera = true;
+
+    this.moneyIcon = this.game.add.sprite(
+      32 + 20 * this.player.money.toString().length, 40, 'moneyIcon');
+    this.moneyIcon.fixedToCamera = true;
+    this.moneyIcon.anchor.setTo(0, 0.5);
+    this.moneyIcon.scale.setTo(0.07, 0.07);
 
     //time counter
     this.timeCounterText = this.game.add.bitmapText(
