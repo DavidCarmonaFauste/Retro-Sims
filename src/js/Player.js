@@ -289,30 +289,30 @@ Player.prototype.interact = function (map) {
 //Muestra por pantalla el ingreso/pérdida de dinero y actualiza hud_playerMoney
 //Esta función solo actualiza la representación del dinero
 Player.prototype.showExchange = function (value) {
-    //Actualiza la posición del icono del dinero (por si cambia el número de dígitos)
+  //Actualiza la posición del icono del dinero (por si cambia el número de dígitos)
 
-    var x = 100 + 16 * this.money.toString().length;
-    var y = 32;
-    this.exchangeText;
+  var x = 100 + 16 * this.money.toString().length;
+  var y = 32;
+  this.exchangeText;
 
-    if (value > 0) { //INGRESO
-      this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
-    } else { //GASTO
-      this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
-    }
-    this.exchangeText.align = "left";
-    this.exchangeText.fixedToCamera = true;
-
-    this.exchangeTimer = this.game.time.create(true);
-    this.exchangeTimer.start();
-
-
-
-  },
-
-  Player.prototype.getDir = function () {
-    return this.dir;
+  if (value > 0) { //INGRESO
+    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
+  } else { //GASTO
+    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
   }
+  this.exchangeText.align = "left";
+  this.exchangeText.fixedToCamera = true;
+
+  this.exchangeTimer = this.game.time.create(true);
+  this.exchangeTimer.start();
+
+
+
+}
+
+Player.prototype.getDir = function () {
+  return this.dir;
+}
 
 Player.prototype.updateFriendship = function (neighbour) {
   var neighName = neighbour.name;

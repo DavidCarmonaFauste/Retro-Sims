@@ -33,6 +33,8 @@ var PlayScene = {
     //Valores iniciales
     this.game.initialX = this.game.world.centerX + 910, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
+    this.neighbourSpawnRate = 5;
+    this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
     this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     this.timeCounter = {
       hour: 12,
@@ -53,6 +55,7 @@ var PlayScene = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.editMode = false;
+
     //Tilemap
     this.map = new Map(this);
 
@@ -66,9 +69,19 @@ var PlayScene = {
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
 
+    //  VECINOS
+    var NUM_NEIGHBOURS = 5; //número total de vecinos
+    this.neighboursGroup = this.game.add.group();
 
-    this.neig = new Neighbour(this.game, 'sim5', 0, this.game.initialY, 'Eric Allen');
+    for (var i = 0; i < NUM_NEIGHBOURS; i++) {
+      var n = new Neighbour(this.game, 'sim' + (i + 1), 0, this.game.initialY, 'Neighbour Number ' + i);
+      this.neighboursGroup.add(n);
+    }
+    this.neighboursGroup.callAll('kill');
 
+
+    /*this.neig = this.neighboursGroup.getRandom();
+    this.neig.revive();*/
 
     this.createHUD();
 
@@ -90,26 +103,33 @@ var PlayScene = {
 
 
     //INTERACCIÓN CON VECINOS
-    if (this.checkPlayerOverlap(this.player, this.neig)) {
+   /*if (this.checkPlayerOverlap(this.player, this.neig)) {
       this.neig.setTalking(true);
       if (this.selectedHUD == 2)
         this.updateFriendsHUD();
-    }
+    }*/
     if (this.neig2 != undefined && this.checkPlayerOverlap(this.player, this.neig2)) {
       this.neig2.setTalking(true);
       if (this.selectedHUD == 2)
         this.updateFriendsHUD();
     }
 
-    this.player.updateFriendship(this.neig);
+    //this.player.updateFriendship(this.neig);
     if (this.neig2 != undefined)
       this.player.updateFriendship(this.neig2);
 
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-      this.spawnSim(4);
-      this.game.input.keyboard.reset(true);
-      this.player.numFriends++;
 
+    //Spawn de vecinos
+    if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
+      this.spawningNeighbour = true;
+      this.spawnSim();
+    }
+
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+      /*this.spawnSim(4);
+      this.game.input.keyboard.reset(true);
+      this.player.numFriends++;*/
+      this.spawnSim();
     }
     //////////////////////////////
 
@@ -154,18 +174,14 @@ var PlayScene = {
     if (this.timeCounter.minute < 59)
       this.timeCounter.minute++;
     else {
-      if(this.timeCounter.hour < 23)
+      if (this.timeCounter.hour < 23)
         this.timeCounter.hour++;
-        else
+      else
         this.timeCounter.hour = 0;
       this.timeCounter.minute = 0;
     }
   },
 
-  spawnSim: function (index) {
-    this.neig2 = new Neighbour(this.game, 'sim' + index, 0, this.game.initialY + 60, 'Clara Lawson');
-    this.player.setFriend(this.neig2, 1);
-  },
 
   //RENDER
   render: function () {
@@ -178,11 +194,47 @@ var PlayScene = {
     //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
   },
 
+
   checkPlayerOverlap: function (player, sim) {
     var playerBounds = player.getBounds();
     var simBounds = sim.getBounds();
 
     return Phaser.Rectangle.intersects(playerBounds, simBounds);
+  },
+
+
+  //Revive un vecino del grupo de vecinos y lo coloca en (0, rnd(initialY+1, initialY+150))
+  spawnSim: function () {
+
+    var i = 0;
+    do {
+      var sim = this.neighboursGroup.getRandom();
+      i++;
+    }
+    while (i < 5 && sim.alive);
+
+
+    if (!sim.alive) { //Si ha encontrado uno muerto
+      sim.revive();
+      sim.x = 0;
+      sim.y = this.game.initialY + Math.floor((Math.random() * 150) + 1);
+      console.log(sim.name + ": HI!");
+    } else //Si no, todos están ya en el juego
+      console.log("Everyone is alive");
+
+      //timer para poner spawningNeighbour a false y que se puedan spawnear más vecinos
+      var timer = this.game.time.create(true);
+      timer.loop(1000, function () {
+        this.spawningNeighbour = false;
+        console.log("asdf");
+        timer.stop();
+      }, this);
+      timer.start();
+
+    /*
+    this.neig2 = new Neighbour(this.game, 'sim' + index, 0, this.game.initialY + 60, 'Clara Lawson');
+    this.player.setFriend(this.neig2, 1);
+    */
   },
 
 
@@ -339,7 +391,9 @@ var PlayScene = {
       elem.scale.setTo(0.075, 0.075);
       elem.anchor.setTo(0.5, 0.5);
     });
-
+    ///
+    //  FIN DE INTERFAZ
+    ///
 
 
 

@@ -26,12 +26,14 @@ Neighbour.prototype.constructor = Neighbour;
 
 //Métodos
 Neighbour.prototype.update = function () {
-  if (this.actualState == 'walking') {
-    this.walkTowardsCenter();
-  } else if (this.actualState == 'exit') {
-    this.walkTowardsExit();
-  } else if (this.actualState == 'talking') {
-    this.talk();
+  if (this.alive) {
+    if (this.actualState == 'walking') {
+      this.walkTowardsCenter();
+    } else if (this.actualState == 'exit') {
+      this.walkTowardsExit();
+    } else if (this.actualState == 'talking') {
+      this.talk();
+    }
   }
 };
 
@@ -54,11 +56,10 @@ Neighbour.prototype.walkTowardsCenter = function () {
 
 Neighbour.prototype.walkTowardsExit = function () {
   this.x += this.speed;
-  if (this.x > this.game.world.width && this.alive) {
-    console.log('me piro');
+  if (this.x > this.game.world.width && this.alive) { //Sale del juego
+    console.log(this.name + ': BYE');
     this.kill();
-    console.log(this);
-    this.actualState = 'dead';
+    //this.actualState = 'dead';
   }
 };
 
