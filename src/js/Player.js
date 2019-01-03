@@ -191,29 +191,34 @@ Player.prototype.move = function () {
   this.body.velocity.x = 0;
   this.body.velocity.y = 0;
 
+
   if (this.controls.up.isDown) { //UP
     //this.animations.play('up');
     this.body.velocity.y -= this.speed;
     this.dir.x = 0;
     this.dir.y = -1;
+    this.game.camera.resetFX();
   }
   if (this.controls.down.isDown) { //DOWN
     //this.animations.play('down');
     this.body.velocity.y += this.speed;
     this.dir.x = 0;
     this.dir.y = 1;
+    this.game.camera.resetFX();
   }
   if (this.controls.left.isDown) { //LEFT
     //this.animations.play('left');
     this.body.velocity.x -= this.speed;
     this.dir.x = -1;
     this.dir.y = 0;
+    this.game.camera.resetFX();
   }
   if (this.controls.right.isDown) { //RIGHT
     //this.animations.play('right');
     this.body.velocity.x += this.speed;
     this.dir.x = 1;
     this.dir.y = 0;
+    this.game.camera.resetFX();
   }
 
   //console.log(this.dir.x + " " + this.dir.y);
@@ -252,6 +257,7 @@ Player.prototype.interactWithMailbox = function () {
 
 Player.prototype.interactWithBed = function () {
   this.needs.fatigue = this.maxNeed;
+  this.game.camera.fade(0x000000, 1000);
   console.log("Going to sleep, good night");
 }
 
