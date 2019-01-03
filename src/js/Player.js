@@ -87,19 +87,27 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
 
 
   //Sonidos
-  this.peeSound = this.game.add.audio('pee');
+  this.peeSound = this.game.add.audio('pee'); //EN EL RETRETE
   this.peeSound.volume = 0.5;
 
-  this.flushSound = this.game.add.audio('flush');
+  this.flushSound = this.game.add.audio('flush'); //TIRAR DE LA CADENA
   //this.flushSound.volume = 0.5;
 
-  this.eatingSound = this.game.add.audio('eating');
+  this.eatingSound = this.game.add.audio('eating'); //COMER
   this.eatingSound.volume = 0.5;
 
-  this.paySound = this.game.add.audio('pay');
+  this.paySound = this.game.add.audio('pay'); //PAGAR
   this.paySound.volume = 0.5;
   this.paySound.onStop.add(function () {
     this.eatingSound.play();
+  }, this);
+
+  this.sleepingSound = this.game.add.audio('sleeping'); //DORMIR
+  this.sleepingSound.onStop.add(function () {   //Cuando termina la canción 
+    this.needs.fatigue = this.maxNeed;
+    this.currentState = 'active';
+    this.stateMachine.pop();
+    this.game.camera.resetFX(); 
   }, this);
 }
 
@@ -197,28 +205,24 @@ Player.prototype.move = function () {
     this.body.velocity.y -= this.speed;
     this.dir.x = 0;
     this.dir.y = -1;
-    this.game.camera.resetFX();
   }
   if (this.controls.down.isDown) { //DOWN
     //this.animations.play('down');
     this.body.velocity.y += this.speed;
     this.dir.x = 0;
     this.dir.y = 1;
-    this.game.camera.resetFX();
   }
   if (this.controls.left.isDown) { //LEFT
     //this.animations.play('left');
     this.body.velocity.x -= this.speed;
     this.dir.x = -1;
     this.dir.y = 0;
-    this.game.camera.resetFX();
   }
   if (this.controls.right.isDown) { //RIGHT
     //this.animations.play('right');
     this.body.velocity.x += this.speed;
     this.dir.x = 1;
     this.dir.y = 0;
-    this.game.camera.resetFX();
   }
 
   //console.log(this.dir.x + " " + this.dir.y);
@@ -256,8 +260,20 @@ Player.prototype.interactWithMailbox = function () {
 }
 
 Player.prototype.interactWithBed = function () {
-  this.needs.fatigue = this.maxNeed;
-  this.game.camera.fade(0x000000, 1000);
+
+  this.sleepingSound.play();
+  this.game.camera.fade(0x000000, 5000);
+  this.currentState = 'sleeping';
+
+  //timer para poner spawningNeighbour a false y que se puedan spawnear más vecinos
+  /*var timer = this.game.time.create(true);
+  timer.loop(11000, function () {
+    
+    
+    timer.stop();
+  }, this);
+  timer.start();*/
+
   console.log("Going to sleep, good night");
 }
 

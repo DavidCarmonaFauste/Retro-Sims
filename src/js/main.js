@@ -81,6 +81,7 @@ var PreloaderScene = {
     this.game.load.audio('flush', 'audio/flush.wav');
     this.game.load.audio('pay', 'audio/pay.wav');
     this.game.load.audio('eating', 'audio/eating.wav');
+    this.game.load.audio('sleeping', 'audio/sleeping.wav');
   },
 
   create: function () {

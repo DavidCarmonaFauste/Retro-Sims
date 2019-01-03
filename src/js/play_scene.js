@@ -131,9 +131,12 @@ var PlayScene = {
 
     this.updateNeeds();
 
-    this.hud_playerMoney.setText(this.player.money);
-    this.timeCounterText.setText(this.getTimeText());
-
+    if (this.player.currentState == 'sleeping') { //Si el jugador está durmiendo, avanza el tiempo 8 horas
+      this.timeCounter.hour = (this.timeCounter.hour + 8) % 23;
+      this.player.currentState = 'waking up'; //para que no siga aumentando en cada update
+    } else if(this.player.currentState == 'active')
+      this.timeCounterText.setText(this.getTimeText()); //Actualiza el texto del tiempo
+    this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
   },
 
   //Actualiza la longitud de las barras de necesidad del hud y reduce todas las necesidades cada X minutos(minutos del juego)
@@ -154,9 +157,9 @@ var PlayScene = {
     if (this.timeCounter.minute < 59)
       this.timeCounter.minute++;
     else {
-      if(this.timeCounter.hour < 23)
+      if (this.timeCounter.hour < 23)
         this.timeCounter.hour++;
-        else
+      else
         this.timeCounter.hour = 0;
       this.timeCounter.minute = 0;
     }
@@ -191,7 +194,7 @@ var PlayScene = {
   //////////////////////////////////////////////////////////
   createHUD: function () {
     //main hud box
-    this.hud_mainBox = this.game.add.sprite(window.innerWidth - 400, window.innerHeight + 120, 'hudBox');
+    this.hud_mainBox = this.game.add.sprite(window.innerWidth - 400, window.innerHeight + 125, 'hudBox');
     this.hud_mainBox.anchor.set(0.5, 0.5);
     this.hud_mainBox.scale.set(1, 0.5);
     this.hud_mainBox.fixedToCamera = true;
@@ -211,7 +214,7 @@ var PlayScene = {
     //this.hud_barOffset = 
 
     //player's name
-    this.hud_playerName = this.game.add.bitmapText(this.hud_x, this.hud_y, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
+    this.hud_playerName = this.game.add.bitmapText(this.hud_x/2, this.hud_y + 10, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
     this.hud_playerName.align = "left";
     this.hud_playerName.fixedToCamera = true;
 
