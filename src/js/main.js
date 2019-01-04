@@ -48,19 +48,19 @@ var PreloaderScene = {
     this.game.load.image('sleepIcon', 'images/hud/sleepIcon.png'); //icono necesidad: SLEEP
     this.game.load.image('moneyIcon', 'images/hud/coinIcon.png'); //icono del dinero
     this.game.load.image('greenBox', 'images/hud/greenBox.png'); //cuadrado verde usado para las barras de necesidad
-    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png'); 
-    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png'); 
-    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png'); 
-    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png'); 
-    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png'); 
-    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
+    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png');
+    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png');
+    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png');
+    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png');
+    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png');
+    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png');
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('tileset', 'images/tiles/tilemaps/tileset64.png');
 
     //temporal
-    this.game.load.image('furni', 'images/tiles/worktop.png'); 
+    this.game.load.image('furni', 'images/tiles/worktop.png');
 
     // Fuentes
     this.game.load.bitmapFont('arcadeWhiteFont', 'fonts/arcadebmfWhite.png', 'fonts/arcadebmf.xml');
@@ -89,6 +89,15 @@ var PreloaderScene = {
     this.game.tap = this.game.add.audio('tap');
     this.game.select = this.game.add.audio('select');
     this.game.theme = this.game.add.audio('mainTheme');
+
+    //Hace que el navegador ignore algunos inputs (flechas y espacio) para evitar mover la ventana jugando
+    this.game.input.keyboard.addKeyCapture([
+      Phaser.Keyboard.DOWN, 
+      Phaser.Keyboard.UP, 
+      Phaser.Keyboard.RIGHT, 
+      Phaser.Keyboard.LEFT, 
+      Phaser.Keyboard.SPACEBAR
+    ]);
 
     // Inicia el menú
     this.game.state.start('menu');
