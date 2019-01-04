@@ -35,6 +35,39 @@ var PlayScene = {
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
     this.neighbourSpawnRate = 5;
     this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
+    var NUM_NEIGHBOURS = 10; //número total de vecinos
+    this.maleNames = [ //Array de nombres masculinos
+      'Troy James',
+      'Kevin Hudson',
+      'Liu Xun',
+      'Ronan Barnes',
+      'Adrián Rodríguez',
+      'Olly Davidson',
+      'Sergio Cicerón',
+      'Haris Parker',
+      'Angus Porter',
+      'Khalid Howard',
+      'Dexter Lowe',
+      'Lucas Correa',
+      'Yao Zheng',
+      'David Carmona',
+      'Mario Tabasco'
+    ];
+    this.femaleNames = [ //Array de nombres femeninos
+      'Cecilia Reyes',
+      'Carmen Vega',
+      'Yi Jie',
+      'Teresa Villa',
+      'Sofia Lewis',
+      'Joanna White',
+      'Rosie Collins',
+      'Penelope Hicks',
+      'Hollie Thompson',
+      'Melody Schmidt',
+      'Hannah Kennedy',
+      'Kate Jackson',
+      'Mei Ling'
+    ];
     this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     this.timeCounter = {
       hour: 12,
@@ -70,11 +103,10 @@ var PlayScene = {
     this.camera.follow(this.player);
 
     //  VECINOS
-    var NUM_NEIGHBOURS = 5; //número total de vecinos
     this.neighboursGroup = this.game.add.group();
 
     for (var i = 0; i < NUM_NEIGHBOURS; i++) {
-      var n = new Neighbour(this.game, 'sim' + (i + 1), 0, this.game.initialY, 'Neighbour Number ' + i);
+      var n = this.randomizeNeighbour();
       this.neighboursGroup.add(n);
     }
     this.neighboursGroup.callAll('kill');
@@ -103,11 +135,11 @@ var PlayScene = {
 
 
     //INTERACCIÓN CON VECINOS
-   /*if (this.checkPlayerOverlap(this.player, this.neig)) {
-      this.neig.setTalking(true);
-      if (this.selectedHUD == 2)
-        this.updateFriendsHUD();
-    }*/
+    /*if (this.checkPlayerOverlap(this.player, this.neig)) {
+       this.neig.setTalking(true);
+       if (this.selectedHUD == 2)
+         this.updateFriendsHUD();
+     }*/
     if (this.neig2 != undefined && this.checkPlayerOverlap(this.player, this.neig2)) {
       this.neig2.setTalking(true);
       if (this.selectedHUD == 2)
@@ -202,6 +234,30 @@ var PlayScene = {
     return Phaser.Rectangle.intersects(playerBounds, simBounds);
   },
 
+  //Devuelve un número aleatorio entre [min, max]
+  randomNumber: function(min,max){
+    return Math.floor(Math.random() * (max - min + 1) ) + min;
+  },
+
+
+  //Genera un vecino con nombre y apariencia aleatoria
+  randomizeNeighbour: function () {
+    var n;
+    var name;
+    var skinIndex = this.randomNumber(1,this.game.numSkins - 1); //skin random
+
+    if (Math.random() > 0.5)
+      name = this.maleNames[this.randomNumber(0,this.maleNames.length)]; //Nombre masculino
+    else
+      name = this.femaleNames[this.randomNumber(0,this.femaleNames.length)]; //Nombre femenino
+
+
+    n = new Neighbour(this.game, 'sim' + skinIndex,
+      0, this.game.initialY, name);
+
+    return n;
+  },
+
 
   //Revive un vecino del grupo de vecinos y lo coloca en (0, rnd(initialY+1, initialY+150))
   spawnSim: function () {
@@ -222,14 +278,13 @@ var PlayScene = {
     } else //Si no, todos están ya en el juego
       console.log("Everyone is alive");
 
-      //timer para poner spawningNeighbour a false y que se puedan spawnear más vecinos
-      var timer = this.game.time.create(true);
-      timer.loop(1000, function () {
-        this.spawningNeighbour = false;
-        console.log("asdf");
-        timer.stop();
-      }, this);
-      timer.start();
+    //timer para poner spawningNeighbour a false y que se puedan spawnear más vecinos
+    var timer = this.game.time.create(true);
+    timer.loop(1000, function () {
+      this.spawningNeighbour = false;
+      timer.stop();
+    }, this);
+    timer.start();
 
     /*
     this.neig2 = new Neighbour(this.game, 'sim' + index, 0, this.game.initialY + 60, 'Clara Lawson');
