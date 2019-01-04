@@ -135,16 +135,17 @@ var PlayScene = {
 
 
     //INTERACCIÓN CON VECINOS
-    /*if (this.checkPlayerOverlap(this.player, this.neig)) {
-       this.neig.setTalking(true);
-       if (this.selectedHUD == 2)
-         this.updateFriendsHUD();
-     }*/
-    if (this.neig2 != undefined && this.checkPlayerOverlap(this.player, this.neig2)) {
-      this.neig2.setTalking(true);
+   this.neighboursGroup.forEach(function (neig) {
+    if (this.checkPlayerOverlap(this.player, neig)) {
+      //console.log(neig.name + ': OUCH');
+      neig.setTalking(true);
+      
+      this.player.updateFriendship(neig);
       if (this.selectedHUD == 2)
         this.updateFriendsHUD();
     }
+    }, this);
+    
 
     //this.player.updateFriendship(this.neig);
     if (this.neig2 != undefined)
@@ -235,8 +236,8 @@ var PlayScene = {
   },
 
   //Devuelve un número aleatorio entre [min, max]
-  randomNumber: function(min,max){
-    return Math.floor(Math.random() * (max - min + 1) ) + min;
+  randomNumber: function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   },
 
 
@@ -244,12 +245,12 @@ var PlayScene = {
   randomizeNeighbour: function () {
     var n;
     var name;
-    var skinIndex = this.randomNumber(1,this.game.numSkins - 1); //skin random
+    var skinIndex = this.randomNumber(1, this.game.numSkins - 1); //skin random
 
     if (Math.random() > 0.5)
-      name = this.maleNames[this.randomNumber(0,this.maleNames.length)]; //Nombre masculino
+      name = this.maleNames[this.randomNumber(0, this.maleNames.length)]; //Nombre masculino
     else
-      name = this.femaleNames[this.randomNumber(0,this.femaleNames.length)]; //Nombre femenino
+      name = this.femaleNames[this.randomNumber(0, this.femaleNames.length)]; //Nombre femenino
 
 
     n = new Neighbour(this.game, 'sim' + skinIndex,
