@@ -31,11 +31,11 @@ var PlayScene = {
     }*/
 
     //Valores iniciales
-    this.game.initialX = this.game.world.centerX + 910, this.game.initialY = 3500;
+    this.game.initialX = this.game.world.centerX, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
     this.neighbourSpawnRate = 5;
     this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
-    var NUM_NEIGHBOURS = 10; //número total de vecinos
+    var NUM_NEIGHBOURS = 5; //número total de vecinos
     this.maleNames = [ //Array de nombres masculinos
       'Troy James',
       'Kevin Hudson',
@@ -135,22 +135,24 @@ var PlayScene = {
 
 
     //INTERACCIÓN CON VECINOS
-   this.neighboursGroup.forEach(function (neig) {
-    if (this.checkPlayerOverlap(this.player, neig)) {
-      //console.log(neig.name + ': OUCH');
-      neig.setTalking(true);
-      
-      this.player.updateFriendship(neig);
-      if (this.selectedHUD == 2)
-        this.updateFriendsHUD();
-    }
+    //this.updateFriendsHUD();
+    /*this.neighboursGroup.forEachAlive(function (neig) {
+      if (this.checkPlayerOverlap(this.player, neig)) {
+        //console.log(neig.name + ': OUCH');
+        if (neig.getState() != 'talking') //Si no está hablando ya, empieza a hablar
+          neig.setTalking(true);
+
+        this.player.updateFriendship(neig);
+        if (this.selectedHUD == 2)
+          this.updateFriendsHUD();
+      }
     }, this);
-    
+
 
     //this.player.updateFriendship(this.neig);
     if (this.neig2 != undefined)
       this.player.updateFriendship(this.neig2);
-
+*/
 
     //Spawn de vecinos
     if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
@@ -228,12 +230,12 @@ var PlayScene = {
   },
 
 
-  checkPlayerOverlap: function (player, sim) {
+  /*checkPlayerOverlap: function (player, sim) {
     var playerBounds = player.getBounds();
     var simBounds = sim.getBounds();
 
     return Phaser.Rectangle.intersects(playerBounds, simBounds);
-  },
+  },*/
 
   //Devuelve un número aleatorio entre [min, max]
   randomNumber: function (min, max) {
@@ -253,7 +255,7 @@ var PlayScene = {
       name = this.femaleNames[this.randomNumber(0, this.femaleNames.length)]; //Nombre femenino
 
 
-    n = new Neighbour(this.game, 'sim' + skinIndex,
+    n = new Neighbour(this.game, this.player, 'sim' + skinIndex,
       0, this.game.initialY, name);
 
     return n;
@@ -273,8 +275,8 @@ var PlayScene = {
 
     if (!sim.alive) { //Si ha encontrado uno muerto
       sim.revive();
-      sim.x = 0;
-      sim.y = this.game.initialY + Math.floor((Math.random() * 150) + 1);
+      sim.setPosition(0, this.game.initialY + Math.floor((Math.random() * 150) + 1));
+      sim.setState('walkingToCenter');
       console.log(sim.name + ": HI!");
     } else //Si no, todos están ya en el juego
       console.log("Everyone is alive");
