@@ -10,7 +10,7 @@ var CreationScene = {
 
     create: function () {
         this.skins = [];
-        this.numSkins = 11;
+        this.game.numSkins = 11;
         this.skinIndex = 1;
         this.params = {};
         this.submenus = ['name', 'skin', 'gender', 'create'];
@@ -38,7 +38,7 @@ var CreationScene = {
         graySquare.anchor.setTo(0.5, 0.5);
         graySquare.scale.setTo(70, 5);
 
-        for (var i = 1; i < this.numSkins; i++) {
+        for (var i = 1; i < this.game.numSkins; i++) {
             this.skins[i] = this.game.add.sprite(
                 this.game.world.centerX + (i - 1) * 150, this.game.world.centerY, 'sim' + i);
             this.skins[i].anchor.setTo(0.5, 0.5);
@@ -248,7 +248,7 @@ var CreationScene = {
         var scroll = this.game.add.audio('scroll');
         scroll.play();
 
-        for (var i = 1; i < this.numSkins; i++) {
+        for (var i = 1; i < this.game.numSkins; i++) {
             this.skins[i].x -= 150 * dir;
         }
 

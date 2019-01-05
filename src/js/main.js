@@ -48,12 +48,15 @@ var PreloaderScene = {
     this.game.load.image('sleepIcon', 'images/hud/sleepIcon.png'); //icono necesidad: SLEEP
     this.game.load.image('moneyIcon', 'images/hud/coinIcon.png'); //icono del dinero
     this.game.load.image('greenBox', 'images/hud/greenBox.png'); //cuadrado verde usado para las barras de necesidad
-    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png');
-    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png');
-    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png');
-    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png');
-    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png');
-    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png');
+    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png'); 
+    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png'); 
+    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png'); 
+    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png'); 
+    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png'); 
+    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
+    this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
+    this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
+    this.game.load.image('resetButton', 'images/hud/resetButton.png'); 
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
