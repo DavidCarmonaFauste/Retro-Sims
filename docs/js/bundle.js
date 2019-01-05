@@ -153,7 +153,7 @@ module.exports = Map;
 },{}],3:[function(require,module,exports){
 var Entity = require('./Entity');
 
-function Neighbour(game, sprite, x, y, name) {
+function Neighbour(game, player, sprite, x, y, name) {
   Phaser.Sprite.call(this, game, x, y, sprite);
   this.anchor.setTo(0.5, 0.5);
   this.scale.setTo(0.3, 0.3);
@@ -161,16 +161,25 @@ function Neighbour(game, sprite, x, y, name) {
 
   this.name = name;
   this.friendship = 0;
-  this.speed = 5;
+  this.speed = 2;
 
   this.game = game;
-  this.timer = game.time.create(true);
-  this.bubble = null; //burbuja de diálogo
+  this.player = player; //referencia a player para comprobar overlaps
+  this.changeDirTimer = game.time.create(true); //Timer de cambio de dirección
+  this.bubble = this.game.add.sprite(200, -280, sprite); //burbuja de diálogo
+  this.bubble.kill();
   this.inConversation = false;
+  this.wanderingTime = 5000;
+  this.movingDirection = [1, 0];
 
 
-  this.states = ['walking', 'idle', 'talking', 'exit', 'dead'];
-  this.actualState = 'walking';
+  //this.states = ['walkingToCenter', 'talking', 'wandering'];
+  this.actualState = 'walkingToCenter';
+  game.physics.enable(this, Phaser.Physics.ARCADE);
+  this.body.setSize(160, 144, 32, 112); //Establece el tamaño y la posición del collider (w,h,x,y)
+
+  this.body.collideWorldBounds = true; //Establece la colisión con los límites del juego
+
   game.add.existing(this); //añadir el sprite al game
 }
 
@@ -178,75 +187,127 @@ Neighbour.prototype = Object.create(Phaser.Sprite.prototype);
 Neighbour.prototype.constructor = Neighbour;
 
 //Métodos
+//UPDATE
 Neighbour.prototype.update = function () {
-  if (this.actualState == 'walking') {
-    this.walkTowardsCenter();
-  } else if (this.actualState == 'exit') {
-    this.walkTowardsExit();
-  } else if (this.actualState == 'talking') {
-    this.talk();
+  if (this.alive) {
+    this.handleState(); //Comprueba el state del vecino y actúa en consecuencia
+
+    if (this.y <= this.game.initialY) //Los vecinos no pueden pisar mi césped!
+      this.movingDirection[1] = 1;
+
+    if (this.x > this.game.world.width - 100) { //Sale del juego
+      console.log(this.name + ': BYE');
+      this.kill();
+    }
   }
 };
 
-Neighbour.prototype.updateState = function () {
-  if (this.bubble != null)
-    this.bubble.kill();
-  this.actualState = 'exit';
-};
 
-Neighbour.prototype.walkTowardsCenter = function () {
-  if (this.x < this.game.initialX) {
-    this.x += this.speed;
-  } else {
-    this.actualState = 'idle';
-    this.timer.loop(1000, this.updateState, this);
-    this.timer.start();
-
+Neighbour.prototype.handleState = function () {
+  if (this.actualState == 'walkingToCenter' && this.x >= this.game.initialX) {
+    this.actualState = 'stopped';
+    this.startWandering();
   }
+
+  if (!this.bubble.alive) { //Si no está hablando
+    if (this.checkPlayerOverlap()) { //Si le habla el jugador
+      //console.log(neig.name + ': OUCH');
+
+      if (this.actualState == 'walkingToCenter' || this.actualState == 'wandering')
+        this.talk();
+    } else if (this.actualState != 'wandering' && this.actualState != 'walkingToCenter') {
+      this.startWandering();
+    }
+  }
+
+  //si no está parado, se desplaza
+  if (this.actualState != 'stopped' && this.actualState != 'talking')
+    this.move();
 };
 
-Neighbour.prototype.walkTowardsExit = function () {
-  this.x += this.speed;
-  if (this.x > this.game.world.width && this.alive) {
-    console.log('me piro');
-    this.kill();
-    console.log(this);
-    this.actualState = 'dead';
-  }
+
+
+Neighbour.prototype.checkPlayerOverlap = function () {
+  var playerBounds = this.player.getBounds();
+  var simBounds = this.getBounds();
+
+  return Phaser.Rectangle.intersects(playerBounds, simBounds);
+}
+
+
+//Hace que el vecino 'deambule' unos segundos
+Neighbour.prototype.startWandering = function () {
+  this.actualState = 'wandering';
+
+  this.changeDirTimer.loop(1000, function () {
+    this.movingDirection = randomDir();
+
+    var auxTimer = this.game.time.create(true);
+    auxTimer.loop(this.wanderingTime, function () {
+      //Después de unos segundos, deja de andar y se va (si no está hablando)
+      this.changeDirTimer.stop();
+
+      if (this.actualState != 'talking') {
+        this.movingDirection = [1, 0];
+      }
+      //this.actualState = 'exiting';
+
+      //this.actualState = 'walking';
+      auxTimer.stop();
+    }, this);
+    auxTimer.start();
+  }, this);
+  this.changeDirTimer.start();
+}
+
+
+Neighbour.prototype.move = function () {
+  this.x += this.movingDirection[0] * this.speed;
+  this.y += this.movingDirection[1] * this.speed;
 };
+
 
 Neighbour.prototype.setTalking = function (b) {
   if (b) {
-    this.actualState = 'talking';
+    this.actualState = 'startTalking';
   } else {
     this.actualState = 'walking';
   }
 }
 
+
 Neighbour.prototype.talk = function () {
-  var min = 0;
-  var max = 3;
-  var rndValue = Math.floor(Math.random() * (max - min)) + min;
+  this.actualState = 'talking';
+
+  //Habla (muestra un bocadillo de diálogo)
+  this.generateDialogBubble();
+
+  //Después de unos segundos, el bocadillo desaparece
+  var auxTimer = this.game.time.create(true);
+  auxTimer.loop(3000, function () {
+    this.bubble.kill();
+    //this.actualState = 'not talking';
+    // console.log(this.actualState);
+
+    if (!this.checkPlayerOverlap()) {
+      //Si no está en contacto con player, deja de hablar
+      auxTimer.stop();
+      if (this.x <= this.game.initialX)
+        this.actualState = 'walkingToCenter';
+      else
+        this.actualState = 'wandering';
+    } else {
+      this.generateDialogBubble();
+    }
+  }, this);
+  auxTimer.start();
 
 
-
-  //this.dialogtimer.loop(7000, this.updateState(), this);
-  if (!this.inConversation) {
-    this.generateDialog();
-    this.dialogtimer = this.game.time.create(true);
-    this.dialogtimer.start();
-    this.inConversation = true;
-  }
-  if (this.dialogtimer.ms >= 6000) {
-    console.log(this.dialogtimer.ms);
-    this.dialogtimer.stop();
-    this.dialogtimer.start();
-    this.inConversation = false;
-    this.updateState();
-  }
 }
 
-Neighbour.prototype.generateDialog = function () {
+
+//Muestra una burbuja de diálogo aleatoria y actualiza la amistad dependiendo de la burbuja generada
+Neighbour.prototype.generateDialogBubble = function () {
   var min = 0;
   var max = 3;
   var rndValue = Math.floor(Math.random() * (max - min)) + min;
@@ -254,32 +315,92 @@ Neighbour.prototype.generateDialog = function () {
   switch (rndValue) {
     case 0:
       this.showDialogBubble('dialogHappy');
-      this.friendship += 5;
+      this.friendship += 1;
       break;
     case 1:
       this.showDialogBubble('dialogAngry');
-      this.friendship -= 5;
+      this.friendship -= 1;
       break;
     case 2:
       this.showDialogBubble('dialogLove');
-      this.friendship += 20;
+      this.friendship += 5;
       break;
   }
 
+  //Actualiza la amistad en la lista del jugador
+  this.player.updateFriendship(this.name, this.friendship);
+
 }
 
+
 Neighbour.prototype.showDialogBubble = function (sprite) {
-  if (this.bubble != null)
-    this.bubble.revive();
   this.bubble = this.addChild(this.game.make.sprite(200, -280, sprite));
   this.bubble.anchor.setTo(0.5, 0.5);
   this.bubble.scale.setTo(0.5, 0.5);
+
+
 }
+
+
+Neighbour.prototype.setPosition = function (x, y) {
+  this.x = x;
+  this.y = y;
+}
+
+
+Neighbour.prototype.setState = function (state) {
+  this.actualState = state;
+}
+
+
+Neighbour.prototype.getState = function () {
+  return this.actualState;
+}
+
+
+//devuelve un array [X,Y] con una dirección aleatoria
+function randomDir() {
+  //Dirección aleatoria
+  //   1
+  // 4   2
+  //   3
+  var rnd = Math.floor(Math.random() * (4 - 1 + 1)) + 1;
+  var direction = [0, 0]
+  switch (rnd) {
+    case 1: //UP
+      direction[1] = -1;
+      break;
+    case 2: //RIGHT
+      direction[0] = 1;
+      break;
+    case 3: //DOWN
+      direction[1] = 1;
+      break;
+    case 4: //LEFT
+      direction[0] = -1;
+      break;
+
+  }
+
+  return direction;
+};
+
+
+
 module.exports = Neighbour;
 },{"./Entity":1}],4:[function(require,module,exports){
 var Neighbour = require('./Neighbour');
 
 function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, money, job) {
+  this.currentState = 'active'; //estado actual del jugador
+  this.stateMachine = [this.currentState]; //máquina de estados
+  //ESTADOS POSIBLES:
+  /*
+    peeing
+    sleeping
+    eating
+  */
+
   //Mapa
   this.map = map;
 
@@ -289,12 +410,19 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.scale.setTo(0.3, 0.3);
 
   //Necesidades
-  this.maxNeed = 100;
+  this.maxNeed = 10000;
+  //cantidad que se reduce a las barras de necesidad
+  this.fatigueReductionAmount = 10;
+  this.hungerReductionAmount = 25;
+  this.peeReductionAmount = 50;
+  //Velocidad a la que se regeneran las necesidades
+  this.needIncreaseAmount = 100;
   this.needs = {
     pee: this.maxNeed,
     hunger: this.maxNeed,
     fatigue: this.maxNeed
   };
+
   //Atributos
   this.maxStat = 10;
   this.stats = {
@@ -306,13 +434,15 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.friends = [];
   this.numFriends = 0;
   //Dinero
-  this.money = 10000;
+  this.money = 5000;
+  this.exchangeTimer = this.game.time.create(true); //Timer para hacer que desaparezca el texto informativo de los ingresos/gastos
+  this.foodPrice = 10;
   //Trabajo
   this.job = 'unemployed';
   //Nombre
   this.name = name;
   //Activo
-  this.active = true; //indica si el player se puede mover (no está en modo edición/conversación...)
+  //this.active = true; //indica si el player se puede mover (no está en modo edición/conversación...)
   //Vel. de movimiento
   this.speed = 300; //velocidad de movimiento
   //Dirección de movimiento
@@ -339,6 +469,37 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.arrow = this.addChild(this.game.make.sprite(0, -250, 'arrow'));
   this.arrow.anchor.setTo(0.5, 0.5);
   this.arrow.scale.setTo(0.5, 0.5);
+  //Píxeles de censura(inicialmente invisibles)
+  this.censor = this.addChild(this.game.make.sprite(0, 0, 'censor'));
+  this.censor.anchor.setTo(0.5, 0.5);
+  this.censor.scale.setTo(2, 2);
+  this.censor.visible = false;
+
+
+
+  //Sonidos
+  this.peeSound = this.game.add.audio('pee'); //EN EL RETRETE
+  this.peeSound.volume = 0.5;
+
+  this.flushSound = this.game.add.audio('flush'); //TIRAR DE LA CADENA
+  //this.flushSound.volume = 0.5;
+
+  this.eatingSound = this.game.add.audio('eating'); //COMER
+  this.eatingSound.volume = 0.5;
+
+  this.paySound = this.game.add.audio('pay'); //PAGAR
+  this.paySound.volume = 0.5;
+  this.paySound.onStop.add(function () {
+    this.eatingSound.play();
+  }, this);
+
+  this.sleepingSound = this.game.add.audio('sleeping'); //DORMIR
+  this.sleepingSound.onStop.add(function () {   //Cuando termina la canción 
+    this.needs.fatigue = this.maxNeed;
+    this.currentState = 'active';
+    this.stateMachine.pop();
+    this.game.camera.resetFX(); 
+  }, this);
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -347,141 +508,276 @@ Player.prototype.constructor = Player;
 
 //Métodos
 Player.prototype.update = function () {
-  if (this.active) //Comprueba que player no está en modo edición/conversación
-    this.move();
+  //Comprueba en qué state está el jugador
+  switch (this.currentState) {
+    case 'active': //ESTADO NORMAL
+      this.move();
 
-  if (this.controls.space.isDown) {
-    this.interact(this.map);
+      if (this.controls.space.isDown) {
+        this.interact(this.map);
+      }
+      break;
+
+    case 'peeing': //PEEING
+      this.peeingState();
+      break;
+
+    case 'eating': //EATING
+      this.eatingState();
+      break;
+
   }
 
-  if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
-    this.needs.fatigue--;
-    console.log(this.needs.fatigue);
+  if (this.exchangeTimer.ms >= 750) {
+    this.exchangeTimer.stop();
+    //this.exchangeTimer.start();
+    this.exchangeText.visible = false;
   }
-  if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
-    this.needs.fatigue++;
-    console.log(this.needs.fatigue);
-  }
-  if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
-    this.money-=100;
-    
-    console.log(this.money);
+
+  /* if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
+     this.needs.fatigue--;
+     console.log(this.needs.fatigue);
+   }
+   if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
+     this.needs.fatigue++;
+     console.log(this.needs.fatigue);
+   }
+   if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
+     this.money-=100;
+     
+     console.log(this.money);
+   }*/
+}
+
+Player.prototype.peeingState = function () {
+  //aumenta la necesidad pee hasta el máximo
+  if (this.needs.pee < this.maxNeed) {
+    if (this.needs.pee + this.needIncreaseAmount <= this.maxNeed)
+      this.needs.pee += this.needIncreaseAmount;
+    else
+      this.needs.pee = this.maxNeed;
+
+  } else {
+    this.censor.visible = false;
+    this.peeSound.stop();
+    this.flushSound.play();
+    this.currentState = 'active';
+    this.stateMachine.pop();
   }
 }
 
-  Player.prototype.move = function () {
-    this.body.velocity.x = 0;
-    this.body.velocity.y = 0;
+Player.prototype.eatingState = function () {
+  //aumenta la necesidad hunger hasta el máximo
+  if (this.needs.hunger < this.maxNeed) {
+    if (this.needs.hunger + this.needIncreaseAmount <= this.maxNeed)
+      this.needs.hunger += this.needIncreaseAmount;
+    else
+      this.needs.hunger = this.maxNeed;
 
-    if (this.controls.up.isDown) { //UP
-      //this.animations.play('up');
-      this.body.velocity.y -= this.speed;
-      this.dir.x = 0;
-      this.dir.y = -1;
-    }
-    if (this.controls.down.isDown) { //DOWN
-      //this.animations.play('down');
-      this.body.velocity.y += this.speed;
-      this.dir.x = 0;
-      this.dir.y = 1;
-    }
-    if (this.controls.left.isDown) { //LEFT
-      //this.animations.play('left');
-      this.body.velocity.x -= this.speed;
-      this.dir.x = -1;
-      this.dir.y = 0;
-    }
-    if (this.controls.right.isDown) { //RIGHT
-      //this.animations.play('right');
-      this.body.velocity.x += this.speed;
-      this.dir.x = 1;
-      this.dir.y = 0;
-    }
+  } else {
+    this.eatingSound.loop = false;
+    this.eatingSound.stop();
+    this.currentState = 'active';
+    this.stateMachine.pop();
+  }
+}
 
-    //console.log(this.dir.x + " " + this.dir.y);
+Player.prototype.sleepingState = function () {
+
+}
+
+Player.prototype.move = function () {
+  this.body.velocity.x = 0;
+  this.body.velocity.y = 0;
+
+
+  if (this.controls.up.isDown) { //UP
+    //this.animations.play('up');
+    this.body.velocity.y -= this.speed;
+    this.dir.x = 0;
+    this.dir.y = -1;
+  }
+  if (this.controls.down.isDown) { //DOWN
+    //this.animations.play('down');
+    this.body.velocity.y += this.speed;
+    this.dir.x = 0;
+    this.dir.y = 1;
+  }
+  if (this.controls.left.isDown) { //LEFT
+    //this.animations.play('left');
+    this.body.velocity.x -= this.speed;
+    this.dir.x = -1;
+    this.dir.y = 0;
+  }
+  if (this.controls.right.isDown) { //RIGHT
+    //this.animations.play('right');
+    this.body.velocity.x += this.speed;
+    this.dir.x = 1;
+    this.dir.y = 0;
   }
 
-  Player.prototype.interactWithSink = function () {
-    console.log("Washing my hands");
+  //console.log(this.dir.x + " " + this.dir.y);
+}
+
+Player.prototype.interactWithSink = function () {
+  console.log("Washing my hands");
+}
+
+Player.prototype.interactWithToilet = function () {
+  console.log("Peeing");
+
+  this.censor.visible = true;
+  this.peeSound.play();
+  this.currentState = 'peeing';
+  this.stateMachine.push(this.currentState);
+  //this.needs.pee = this.maxNeed;
+}
+
+Player.prototype.interactWithFridge = function () {
+  console.log("Getting something to eat");
+
+  this.eatingSound.loop = true;
+
+  this.showExchange(-this.foodPrice);
+  this.money -= this.foodPrice;
+  this.paySound.play();
+  this.currentState = 'eating';
+  this.stateMachine.push(this.currentState);
+  //this.needs.hunger = this.maxNeed;
+}
+
+Player.prototype.interactWithMailbox = function () {
+  console.log("Checking my mails");
+}
+
+Player.prototype.interactWithBed = function () {
+
+  this.sleepingSound.play();
+  this.game.camera.fade(0x000000, 5000);
+  this.currentState = 'sleeping';
+
+  //timer para poner spawningNeighbour a false y que se puedan spawnear más vecinos
+  /*var timer = this.game.time.create(true);
+  timer.loop(11000, function () {
+    
+    
+    timer.stop();
+  }, this);
+  timer.start();*/
+
+  console.log("Going to sleep, good night");
+}
+
+Player.prototype.interact = function (map) {
+  var type = map.getTileType(this);
+
+  switch (type) {
+    case "sink":
+      this.interactWithSink();
+      break;
+    case "toilet":
+      this.interactWithToilet();
+      break;
+    case "fridge":
+      this.interactWithFridge();
+      break;
+    case "mailbox":
+      this.interactWithMailbox();
+      break;
+    case "bed":
+      this.interactWithBed();
+      break;
+    default:
+      type = "Not an object"
+      break;
   }
 
-  Player.prototype.interactWithToilet = function () {
-    console.log("Peeing");
-    this.needs.pee = this.maxNeed;
+  if (type != "Not an object")
+    this.game.input.keyboard.reset(true);
+
+}
+
+
+
+//Muestra por pantalla el ingreso/pérdida de dinero y actualiza hud_playerMoney
+//Esta función solo actualiza la representación del dinero
+Player.prototype.showExchange = function (value) {
+  //Actualiza la posición del icono del dinero (por si cambia el número de dígitos)
+
+  var x = 100 + 16 * this.money.toString().length;
+  var y = 32;
+  this.exchangeText;
+
+  if (value > 0) { //INGRESO
+    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
+  } else { //GASTO
+    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
+  }
+  this.exchangeText.align = "left";
+  this.exchangeText.fixedToCamera = true;
+
+  this.exchangeTimer = this.game.time.create(true);
+  this.exchangeTimer.start();
+
+
+
+}
+
+Player.prototype.getDir = function () {
+  return this.dir;
+}
+
+Player.prototype.getNumFriends = function () {
+  return this.numFriends;
+}
+
+//Busca al vecino en la lista de amigos y, si existe actualiza su amistad
+//Si no estaba en la lista, lo añade
+Player.prototype.updateFriendship = function (_name, _points) {
+  var found = false;
+  var i = 0;
+
+  while (i < this.numFriends && !found) {
+    if (this.friends[i].name == _name)
+      found = true;
+    else
+      i++;
   }
 
-  Player.prototype.interactWithFridge = function () {
-    console.log("Getting something to eat");
-    this.needs.hunger = this.maxNeed;
+  if (found) {
+    this.friends[i].points = _points;
+  } else {
+    this.friends.push({
+      name: _name,
+      points: _points
+    });
+    this.numFriends++;
   }
 
-  Player.prototype.interactWithMailbox = function () {
-    console.log("Checking my mails");
+}
+
+//Devuelve true si existe un friend para el índice index
+Player.prototype.searchFriendByIndex = function (index) {
+
+  return this.friends[index] != undefined;
+}
+
+Player.prototype.setFriend = function (neighbour, index) {
+  this.friends[index] = {
+    name: neighbour.name,
+    friendship: neighbour.friendship
+  };
+}
+
+//Reduce los puntos de todas las necesidades
+Player.prototype.updateNeeds = function () {
+  //Solo actualiza las necesidades si el jugador está activo
+  if (this.currentState == 'active') {
+    this.needs.hunger -= this.hungerReductionAmount;
+    this.needs.fatigue -= this.fatigueReductionAmount;
+    this.needs.pee -= this.peeReductionAmount;
   }
-
-  Player.prototype.interactWithBed = function () {
-    this.needs.fatigue = this.maxNeed;
-    console.log("Going to sleep, good night");
-  }
-
-  Player.prototype.interact = function (map) {
-    var type = map.getTileType(this);
-
-    switch (type) {
-      case "sink":
-        this.interactWithSink();
-        break;
-      case "toilet":
-        this.interactWithToilet();
-        break;
-      case "fridge":
-        this.interactWithFridge();
-        break;
-      case "mailbox":
-        this.interactWithMailbox();
-        break;
-      case "bed":
-        this.interactWithBed();
-        break;
-      default:
-        type = "Not an object"
-        break;
-    }
-
-    if (type != "Not an object")
-      this.game.input.keyboard.reset(true);
-
-  }
-
-  Player.prototype.getDir = function () {
-    return this.dir;
-  }
-
-  Player.prototype.updateFriendship = function (neighbour) {
-    var neighName = neighbour.name;
-    var neighFriendship = neighbour.friendship;
-
-
-
-    this.friends[this.numFriends] = {
-      name: neighName,
-      friendship: neighFriendship
-    };
-
-    //console.log(this.friends[0]);
-  }
-
-  Player.prototype.getFriend = function (index) {
-
-    return this.friends[index];
-  }
-
-  Player.prototype.setFriend = function(neighbour, index){
-    this.friends[index] = {
-      name: neighbour.name,
-      friendship: neighbour.friendship
-    };
-  }
+}
 
 
 module.exports = Player;
@@ -498,7 +794,7 @@ var CreationScene = {
 
     create: function () {
         this.skins = [];
-        this.numSkins = 11;
+        this.game.numSkins = 11;
         this.skinIndex = 1;
         this.params = {};
         this.submenus = ['name', 'skin', 'gender', 'create'];
@@ -526,7 +822,7 @@ var CreationScene = {
         graySquare.anchor.setTo(0.5, 0.5);
         graySquare.scale.setTo(70, 5);
 
-        for (var i = 1; i < this.numSkins; i++) {
+        for (var i = 1; i < this.game.numSkins; i++) {
             this.skins[i] = this.game.add.sprite(
                 this.game.world.centerX + (i - 1) * 150, this.game.world.centerY, 'sim' + i);
             this.skins[i].anchor.setTo(0.5, 0.5);
@@ -736,7 +1032,7 @@ var CreationScene = {
         var scroll = this.game.add.audio('scroll');
         scroll.play();
 
-        for (var i = 1; i < this.numSkins; i++) {
+        for (var i = 1; i < this.game.numSkins; i++) {
             this.skins[i].x -= 150 * dir;
         }
 
@@ -801,7 +1097,9 @@ var PreloaderScene = {
       this.game.load.image('sim' + i, 'images/sims/Sim' + i + '.png');
     this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
-    this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
+    //this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
+    this.game.load.image('censor', 'images/censorship.png'); //Imagen usada para censurar
+
 
     // Imágenes del HUD
     this.game.load.image('hudBox', 'images/hud/hudBox.png'); //caja básica de la interfaz
@@ -814,6 +1112,7 @@ var PreloaderScene = {
     this.game.load.image('hungerIcon', 'images/hud/hungerIcon.png'); //icono necesidad: HUNGER
     this.game.load.image('toiletIcon', 'images/hud/toiletIcon.png'); //icono necesidad: TOILET
     this.game.load.image('sleepIcon', 'images/hud/sleepIcon.png'); //icono necesidad: SLEEP
+    this.game.load.image('moneyIcon', 'images/hud/coinIcon.png'); //icono del dinero
     this.game.load.image('greenBox', 'images/hud/greenBox.png'); //cuadrado verde usado para las barras de necesidad
     this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png'); 
     this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png'); 
@@ -821,18 +1120,22 @@ var PreloaderScene = {
     this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png'); 
     this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png'); 
     this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
+    this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
+    this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
+    this.game.load.image('resetButton', 'images/hud/resetButton.png'); 
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
     this.load.image('tileset', 'images/tiles/tilemaps/tileset64.png');
 
     //temporal
-    this.game.load.image('furni', 'images/tiles/worktop.png'); 
+    this.game.load.image('furni', 'images/tiles/worktop.png');
 
     // Fuentes
     this.game.load.bitmapFont('arcadeWhiteFont', 'fonts/arcadebmfWhite.png', 'fonts/arcadebmf.xml');
     this.game.load.bitmapFont('arcadeBlackFont', 'fonts/arcadebmfBlack.png', 'fonts/arcadebmf.xml');
     this.game.load.bitmapFont('arcadeGreenFont', 'fonts/arcadebmfGreenSpecial.png', 'fonts/arcadebmf.xml');
+    this.game.load.bitmapFont('arcadeRedFont', 'fonts/arcadebmfRed.png', 'fonts/arcadebmf.xml');
 
     // Audio
     this.game.load.audio('tap', 'audio/tap.wav');
@@ -842,7 +1145,12 @@ var PreloaderScene = {
     this.game.load.audio('scroll', 'audio/scroll.wav');
     this.game.load.audio('select', 'audio/selection.wav');
     this.game.load.audio('creationCompleted', 'audio/creationCompleted.wav');
-    this.game.load.audio('mainTheme', 'audio/mainTheme.mp3')
+    this.game.load.audio('mainTheme', 'audio/mainTheme.mp3'); //MAIN THEME
+    this.game.load.audio('pee', 'audio/peeing.mp3');
+    this.game.load.audio('flush', 'audio/flush.wav');
+    this.game.load.audio('pay', 'audio/pay.wav');
+    this.game.load.audio('eating', 'audio/eating.wav');
+    this.game.load.audio('sleeping', 'audio/sleeping.wav');
   },
 
   create: function () {
@@ -850,6 +1158,15 @@ var PreloaderScene = {
     this.game.tap = this.game.add.audio('tap');
     this.game.select = this.game.add.audio('select');
     this.game.theme = this.game.add.audio('mainTheme');
+
+    //Hace que el navegador ignore algunos inputs (flechas y espacio) para evitar mover la ventana jugando
+    this.game.input.keyboard.addKeyCapture([
+      Phaser.Keyboard.DOWN, 
+      Phaser.Keyboard.UP, 
+      Phaser.Keyboard.RIGHT, 
+      Phaser.Keyboard.LEFT, 
+      Phaser.Keyboard.SPACEBAR
+    ]);
 
     // Inicia el menú
     this.game.state.start('menu');
@@ -876,7 +1193,7 @@ var MenuScene = {
         //Reproducir el main theme
         this.game.theme.loop = true; //loop
         this.game.theme.volume = 0.075; //volumen
-        this.game.theme.play();
+        //this.game.theme.play();
 
         var logo = this.game.add.sprite(
             this.game.world.centerX, this.game.world.centerY - 90, 'logo');
@@ -942,25 +1259,66 @@ var PlayScene = {
 
   //CREATE
   create: function () {
-    /*this.game.input.keyboard.onPressCallback = function (e) {
-      if (!this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) { //para eviar que se pongan espacios
-          console.log('pues si');
-      }
-    }*/
 
     //Valores iniciales
-    this.game.initialX = this.game.world.centerX + 910, this.game.initialY = 3500;
+    this.game.initialX = this.game.world.centerX, this.game.initialY = 3500;
+    this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
+    this.neighbourSpawnRate = 5;
+    this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
+    var NUM_NEIGHBOURS = 10; //número total de vecinos
+    this.maleNames = [ //Array de nombres masculinos
+      'Troy James',
+      'Kevin Hudson',
+      'Liu Xun',
+      'Ronan Barnes',
+      'Alberto Ruiz',
+      'Olly Davidson',
+      'Sergio Castro',
+      'Haris Parker',
+      'Angus Porter',
+      'Khalid Howard',
+      'Dexter Lowe',
+      'Lucas Correa',
+      'Yao Zheng',
+      'David Carmona',
+      'Mario Tabasco'
+    ];
+    this.femaleNames = [ //Array de nombres femeninos
+      'Cecilia Reyes',
+      'Carmen Vega',
+      'Yi Jie',
+      'Teresa Villa',
+      'Sofia Lewis',
+      'Joanna White',
+      'Rosie Collins',
+      'Penelope Hicks',
+      'Hollie Thompson',
+      'Melody Schmidt',
+      'Hannah Kennedy',
+      'Kate Jackson',
+      'Mei Ling'
+    ];
+    this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
+    //Tiempo del juego
+    this.timeCounter = {
+      hour: 12,
+      minute: 0
+    };
+    this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
+
     //Información que se muestra en el hud:
     // 0: NEEDS
     // 1: YOU
     // 2: FRIENDS
     // Empieza con NEEDS
     this.selectedHUD = 0;
+    this.friendsWindowPage = 1;
 
     this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.editMode = false;
+
     //Tilemap
     this.map = new Map(this);
 
@@ -974,8 +1332,14 @@ var PlayScene = {
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
 
+    //  VECINOS
+    this.neighboursGroup = this.game.add.group();
 
-    this.neig = new Neighbour(this.game, 'sim5', 0, this.game.initialY, 'Eric Allen');
+    for (var i = 0; i < NUM_NEIGHBOURS; i++) {
+      var n = this.randomizeNeighbour();
+      this.neighboursGroup.add(n);
+    }
+    this.neighboursGroup.callAll('kill');
 
 
     this.createHUD();
@@ -995,81 +1359,140 @@ var PlayScene = {
     } else
       this.map.setWalls(true);
 
-    this.hungerBar.width = this.player.needs.hunger / this.player.maxNeed * this.barWidth;
-    this.sleepBar.width = this.player.needs.fatigue / this.player.maxNeed * this.barWidth;
-    this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
-
-    if (this.checkPlayerOverlap(this.player, this.neig)) {
-      this.neig.setTalking(true);
-      if (this.selectedHUD == 2)
-        this.updateFriendsHUD();
+    //Spawn de vecinos
+    if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
+      this.spawningNeighbour = true;
+      this.spawnSim();
     }
-    if (this.neig2 != undefined && this.checkPlayerOverlap(this.player, this.neig2)) {
-      this.neig2.setTalking(true);
-      if (this.selectedHUD == 2)
-        this.updateFriendsHUD();
-    }
-
-    this.player.updateFriendship(this.neig);
-    if (this.neig2 != undefined)
-      this.player.updateFriendship(this.neig2);
 
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-      this.spawnSim(4);
-      this.game.input.keyboard.reset(true);
-      this.player.numFriends++;
-
+      console.log(this.player.friends);
     }
+    //////////////////////////////
 
+    //Activar el modo edición
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
       this.editMode = true;
 
     }
 
     if (this.editMode && this.game.input.activePointer.leftButton.isDown) {
-      this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
+      /*this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
       console.log(this.game.input.mousePointer.x, this.game.input.mousePointer.y);
       this.furni.fixedToCamera = true;
       this.furni.scale.setTo(0.25, 0.25);
       this.furni.anchor.setTo(0.5, 0.5);
-      this.player.money -= 75;
+      this.player.money -= 75;*/
+
     }
 
+    this.updateNeeds();
 
-
-    this.hud_playerMoney.setText(this.player.money + " €");
-
+    if (this.player.currentState == 'sleeping') { //Si el jugador está durmiendo, avanza el tiempo 8 horas
+      this.timeCounter.hour = (this.timeCounter.hour + 8) % 23;
+      this.player.currentState = 'waking up'; //para que no siga aumentando en cada update
+    } else if(this.player.currentState == 'active')
+      this.timeCounterText.setText(this.getTimeText()); //Actualiza el texto del tiempo
+    this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
   },
 
-  spawnSim: function (index) {
-    this.neig2 = new Neighbour(this.game, 'sim' + index, 0, this.game.initialY + 60, 'Clara Lawson');
-    this.player.setFriend(this.neig2, 1);
+  //Actualiza la longitud de las barras de necesidad del hud y reduce todas las necesidades cada X minutos(minutos del juego)
+  updateNeeds: function () {
+    //reduce los puntos de necesidad cada needsRate minutos del juego
+    if (this.timeCounter.minute % this.needsRate == 0) {
+      this.player.updateNeeds();
+    }
+
+    //Actualiza las barras del hud
+    this.hungerBar.width = this.player.needs.hunger / this.player.maxNeed * this.barWidth;
+    this.sleepBar.width = this.player.needs.fatigue / this.player.maxNeed * this.barWidth;
+    this.toiletBar.width = this.player.needs.pee / this.player.maxNeed * this.barWidth;
   },
+
+  //actualiza el contador de tiempo adecuadamente
+  updateTimeCounter: function () {
+    if (this.timeCounter.minute < 59)
+      this.timeCounter.minute++;
+    else {
+      if (this.timeCounter.hour < 23)
+        this.timeCounter.hour++;
+      else
+        this.timeCounter.hour = 0;
+      this.timeCounter.minute = 0;
+    }
+  },
+
 
   //RENDER
   render: function () {
     //Debugs
     if (this.debug) {
-      this.game.debug.spriteInfo(this.neig, 32, 32);
       this.game.debug.body(this.player);
     }
     //this.game.debug.spriteInfo(this.hud_mainBox, 32, 80);
     //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
   },
 
-  checkPlayerOverlap: function (player, sim) {
-    var playerBounds = player.getBounds();
-    var simBounds = sim.getBounds();
-
-    return Phaser.Rectangle.intersects(playerBounds, simBounds);
+  //Devuelve un número aleatorio entre [min, max]
+  randomNumber: function (min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   },
 
 
+  //Genera un vecino con nombre y apariencia aleatoria
+  randomizeNeighbour: function () {
+    var n;
+    var name;
+    var skinIndex = this.randomNumber(1, this.game.numSkins - 1); //skin random
 
-  //Crea la interfaz del
+    if (Math.random() > 0.5)
+      name = this.maleNames[this.randomNumber(0, this.maleNames.length - 1)]; //Nombre masculino
+    else
+      name = this.femaleNames[this.randomNumber(0, this.femaleNames.length - 1)]; //Nombre femenino
+
+
+    n = new Neighbour(this.game, this.player, 'sim' + skinIndex,
+      0, this.game.initialY, name);
+
+    return n;
+  },
+
+
+  //Revive un vecino del grupo de vecinos y lo coloca en (0, rnd(initialY+1, initialY+150))
+  spawnSim: function () {
+
+    var i = 0;
+    do {
+      var sim = this.neighboursGroup.getRandom();
+      i++;
+    }
+    while (i < 5 && sim.alive);
+
+
+    if (!sim.alive) { //Si ha encontrado uno muerto
+      sim.revive();
+      sim.setPosition(0, this.game.initialY + Math.floor((Math.random() * 150) + 1));
+      sim.setState('walkingToCenter');
+      console.log(sim.name + ": HI!");
+    } else //Si no, todos están ya en el juego
+      console.log("Everyone is alive");
+
+    //timer para poner spawningNeighbour a false y que se puedan spawnear más vecinos
+    var timer = this.game.time.create(true);
+    timer.loop(1000, function () {
+      this.spawningNeighbour = false;
+      timer.stop();
+    }, this);
+    timer.start();
+  },
+
+
+  ////////////////////////////////////////////////////////////
+  //                        INTERFAZ                       //
+  //////////////////////////////////////////////////////////
   createHUD: function () {
     //main hud box
-    this.hud_mainBox = this.game.add.sprite(window.innerWidth - 400, window.innerHeight + 120, 'hudBox');
+    this.hud_mainBox = this.game.add.sprite(window.innerWidth - 400, window.innerHeight + 125, 'hudBox');
     this.hud_mainBox.anchor.set(0.5, 0.5);
     this.hud_mainBox.scale.set(1, 0.5);
     this.hud_mainBox.fixedToCamera = true;
@@ -1085,10 +1508,11 @@ var PlayScene = {
     this.hud_icons_x = this.hud_x - 40;
     this.hud_icons_offset = 50;
     this.barWidth = 85;
+    this.timeCounter_offset = 116;
     //this.hud_barOffset = 
 
     //player's name
-    this.hud_playerName = this.game.add.bitmapText(this.hud_x, this.hud_y, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
+    this.hud_playerName = this.game.add.bitmapText(this.hud_x/2, this.hud_y + 10, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
     this.hud_playerName.align = "left";
     this.hud_playerName.fixedToCamera = true;
 
@@ -1097,8 +1521,22 @@ var PlayScene = {
     this.hud_playerMoney.align = "left";
     this.hud_playerMoney.fixedToCamera = true;
 
+    this.moneyIcon = this.game.add.sprite(
+      32 + 20 * this.player.money.toString().length, 40, 'moneyIcon');
+    this.moneyIcon.fixedToCamera = true;
+    this.moneyIcon.anchor.setTo(0, 0.5);
+    this.moneyIcon.scale.setTo(0.07, 0.07);
+
+    //time counter
+    this.timeCounterText = this.game.add.bitmapText(
+      window.innerWidth - this.timeCounter_offset, 32, 'arcadeBlackFont',
+      this.getTimeText(), //muestra el tiempo con formato: 00:00
+      20);
+    this.timeCounterText.align = "left";
+    this.timeCounterText.fixedToCamera = true;
 
     //SUBMENÚS:  NEEDS, YOU, FRIENDS
+
     //  NEEDS
     //group
     this.needsGroup = this.game.add.group();
@@ -1135,6 +1573,9 @@ var PlayScene = {
         this.changeMenu(this.needsGroup);
         this.resetHUD();
         this.needsButton.loadTexture('needsIconSelected');
+
+        if (this.selectedHUD == 2) //friends menu
+          this.hideGroup(this.friendsExtraGroup);
         this.selectedHUD = 0;
       }
     });
@@ -1183,20 +1624,30 @@ var PlayScene = {
         this.changeMenu(this.youGroup);
         this.resetHUD();
         this.youButton.loadTexture('youIconSelected');
+
+        if (this.selectedHUD == 2) //friends menu
+          this.hideGroup(this.friendsExtraGroup);
         this.selectedHUD = 1;
       }
     });
     this.youButton.fixedToCamera = true;
 
+
     //  FRIENDS
     //group
     this.friendsGroup = this.game.add.group();
 
+    //for(var i = 0; i < this.player.getNumFriends();i++)
 
-    //var friend = this.player.getFriend(0);
+    for (var i = 0; i < Math.min(3, this.player.numFriends); i++) {
+      var txt = this.player.friends[i].name + '\n' + this.player.friends[i].points + 'friendship points';
+      this.friendsGroup.add(this.game.add.bitmapText(this.youIconX + this.youTextOffset,
+        this.hud_buttonsY, 'arcadeBlackFont',
+        txt, 20));
+    }
     /*this.friendText1 = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
       this.hud_buttonsY, 'arcadeBlackFont',
-      "AAAA", 20);*/
+      txt, 20);*/
 
     this.friendsGroup.forEach(function (elem) {
       elem.fixedToCamera = true;
@@ -1204,8 +1655,59 @@ var PlayScene = {
       elem.anchor.setTo(0.5, 0.5);
     });
 
+    //extra group -> para los botones dentro del menú FRIENDS que no queremos que cambien al cambiar de página
+    this.friendsExtraGroup = this.game.add.group();
+
+    this.pageText = this.game.add.bitmapText(this.hud_buttonsX + this.hud_buttonW - 60, this.hud_buttonsY - 64, 'arcadeBlackFont',
+      'Page ' + this.friendsWindowPage + "/" + (Math.round(this.player.numFriends / 3) + 1), 18);
+
+    this.friendsExtraGroup.add(this.pageText);
+
+    //botón Next Page
+    var nextPageButton = this.addButton('nextButton', '',
+      this.hud_buttonsX + this.hud_buttonW - 150, this.hud_buttonsY - 64,
+      this.hud_buttonW, this.hud_buttonW,
+      function () {
+        this.friendsWindowPage = Math.max(1, Math.min(this.friendsWindowPage + 1,
+          Math.round(this.player.numFriends / 3) + 1
+        )); // página límite
+
+        this.updateFriendsHUD();
+      });
+
+    nextPageButton.scale.setTo(0.075, 0.075);
+    this.friendsExtraGroup.add(nextPageButton);
 
 
+    //botón Prev Page
+    var prevPageButton = this.addButton('prevButton', '',
+      this.hud_buttonsX + this.hud_buttonW - 150 - 54, this.hud_buttonsY - 64,
+      this.hud_buttonW, this.hud_buttonW,
+      function () {
+        this.friendsWindowPage = Math.max(1, this.friendsWindowPage - 1); // página límite
+
+        this.updateFriendsHUD();
+      });
+
+    prevPageButton.scale.setTo(0.075, 0.075);
+    this.friendsExtraGroup.add(prevPageButton);
+
+
+    //botón de reset de la lista de amigos
+    var resetButton = this.addButton('resetButton', '',
+      this.hud_buttonsX + this.hud_buttonW - 150 - 128, this.hud_buttonsY - 64,
+      this.hud_buttonW, this.hud_buttonW,
+      function () {
+        this.updateFriendsHUD();
+      });
+
+    resetButton.scale.setTo(0.075, 0.075);
+    this.friendsExtraGroup.add(resetButton);
+
+    this.friendsExtraGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+      elem.anchor.setTo(0.5, 0.5);
+    });
 
     //button
     this.friendsButton = this.addButton('friendsIcon', '', this.hud_buttonsX + 2 * this.hud_buttonW, this.hud_buttonsY, this.hud_buttonW, this.hud_buttonW, function () {
@@ -1215,6 +1717,7 @@ var PlayScene = {
         this.friendsButton.loadTexture('friendsIconSelected');
         this.selectedHUD = 2;
 
+        this.showGroup(this.friendsExtraGroup);
 
         //show friends
         this.updateFriendsHUD();
@@ -1225,7 +1728,12 @@ var PlayScene = {
     this.hideGroup(this.needsGroup);
     this.hideGroup(this.youGroup);
     this.hideGroup(this.friendsGroup);
+    this.hideGroup(this.friendsExtraGroup);
     this.showActualMenu();
+  },
+
+  getTimeText: function () {
+    return ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
   },
 
   //deselecciona el submenú actual del hud
@@ -1245,43 +1753,26 @@ var PlayScene = {
   },
 
   updateFriendsHUD: function () {
+    this.friendsGroup.removeAll(true);
 
-    for (var i = 0; i < this.player.numFriends + 1; i++) {
+    this.pageText.setText('Page ' + this.friendsWindowPage + "/" + (Math.round(this.player.numFriends / 3) + 1));
 
-      var friend = this.player.getFriend(i);
+    for (var i = 0; i < Math.min(3, this.player.numFriends); i++) {
+      var index = i + (3 * (this.friendsWindowPage - 1));
+      if (this.player.searchFriendByIndex(index)) { //Si existe un amigo con este índice
+        var s = this.player.friends[index].name + '\n' + this.player.friends[index].points + ' friend points';
+        var txt = this.game.add.bitmapText(i * 180 + this.youIconX - 80 + this.youTextOffset,
+          this.hud_buttonsY, 'arcadeBlackFont',
+          s, 15)
 
-      this.friendsGroup.remove(this.friendText);
 
-      this.friendText = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
-        this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
+        txt.fixedToCamera = true;
+        txt.align = "left";
+        txt.anchor.setTo(0, 0.5);
 
-      this.friendsGroup.add(this.friendText);
-      //console.log(this.friendText._text);
-      this.friendText.fixedToCamera = true;
-      this.friendText.align = "left";
-
-      this.friendText.anchor.setTo(0, 0.5);
+        this.friendsGroup.add(txt);
+      }
     }
-  },
-
-  //TEMPORAL///////////////////////////
-  updateFriendsHUD2: function () {
-
-
-
-    var friend = this.player.getFriend(1);
-
-    //this.friendsGroup.remove(this.friendText);
-
-    this.friendText2 = this.game.add.bitmapText((this.youIconX + this.youTextOffset) * 2,
-      this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
-
-    this.friendsGroup.add(this.friendText2);
-    //console.log(this.friendText._text);
-    this.friendText2.fixedToCamera = true;
-    this.friendText2.align = "left";
-
-    this.friendText2.anchor.setTo(0, 0.5);
   },
 
   //Muestra el submenú de NEEDS/YOU/FRIENDS
@@ -1299,7 +1790,9 @@ var PlayScene = {
     oldGroup = this.getActualMenu();
 
     this.hideGroup(oldGroup);
+
     this.showGroup(newGroup);
+
   },
 
   getActualMenu: function () {
@@ -1319,6 +1812,12 @@ var PlayScene = {
 
     return menu;
   },
+
+
+  ///
+  //  FIN DE INTERFAZ
+  ///
+
 
   hideGroup: function (group) {
     group.forEach(function (elem) {
