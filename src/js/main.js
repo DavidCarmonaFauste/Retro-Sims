@@ -54,6 +54,9 @@ var PreloaderScene = {
     this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png'); 
     this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png'); 
     this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
+    this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
+    this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
+    this.game.load.image('resetButton', 'images/hud/resetButton.png'); 
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);

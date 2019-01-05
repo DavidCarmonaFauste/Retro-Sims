@@ -24,26 +24,21 @@ var PlayScene = {
 
   //CREATE
   create: function () {
-    /*this.game.input.keyboard.onPressCallback = function (e) {
-      if (!this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) { //para eviar que se pongan espacios
-          console.log('pues si');
-      }
-    }*/
 
     //Valores iniciales
     this.game.initialX = this.game.world.centerX, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
     this.neighbourSpawnRate = 5;
     this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
-    var NUM_NEIGHBOURS = 5; //número total de vecinos
+    var NUM_NEIGHBOURS = 10; //número total de vecinos
     this.maleNames = [ //Array de nombres masculinos
       'Troy James',
       'Kevin Hudson',
       'Liu Xun',
       'Ronan Barnes',
-      'Adrián Rodríguez',
+      'Alberto Ruiz',
       'Olly Davidson',
-      'Sergio Cicerón',
+      'Sergio Castro',
       'Haris Parker',
       'Angus Porter',
       'Khalid Howard',
@@ -69,6 +64,7 @@ var PlayScene = {
       'Mei Ling'
     ];
     this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
+    //Tiempo del juego
     this.timeCounter = {
       hour: 12,
       minute: 0
@@ -81,8 +77,7 @@ var PlayScene = {
     // 2: FRIENDS
     // Empieza con NEEDS
     this.selectedHUD = 0;
-    //Tiempo del juego
-
+    this.friendsWindowPage = 1;
 
     this.debug = false; //Poner a true para activar los debugs de player y del tilemap
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -112,9 +107,6 @@ var PlayScene = {
     this.neighboursGroup.callAll('kill');
 
 
-    /*this.neig = this.neighboursGroup.getRandom();
-    this.neig.revive();*/
-
     this.createHUD();
 
 
@@ -132,28 +124,6 @@ var PlayScene = {
     } else
       this.map.setWalls(true);
 
-
-
-    //INTERACCIÓN CON VECINOS
-    //this.updateFriendsHUD();
-    /*this.neighboursGroup.forEachAlive(function (neig) {
-      if (this.checkPlayerOverlap(this.player, neig)) {
-        //console.log(neig.name + ': OUCH');
-        if (neig.getState() != 'talking') //Si no está hablando ya, empieza a hablar
-          neig.setTalking(true);
-
-        this.player.updateFriendship(neig);
-        if (this.selectedHUD == 2)
-          this.updateFriendsHUD();
-      }
-    }, this);
-
-
-    //this.player.updateFriendship(this.neig);
-    if (this.neig2 != undefined)
-      this.player.updateFriendship(this.neig2);
-*/
-
     //Spawn de vecinos
     if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
       this.spawningNeighbour = true;
@@ -161,10 +131,7 @@ var PlayScene = {
     }
 
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-      /*this.spawnSim(4);
-      this.game.input.keyboard.reset(true);
-      this.player.numFriends++;*/
-      this.spawnSim();
+      console.log(this.player.friends);
     }
     //////////////////////////////
 
@@ -222,20 +189,11 @@ var PlayScene = {
   render: function () {
     //Debugs
     if (this.debug) {
-      this.game.debug.spriteInfo(this.neig, 32, 32);
       this.game.debug.body(this.player);
     }
     //this.game.debug.spriteInfo(this.hud_mainBox, 32, 80);
     //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
   },
-
-
-  /*checkPlayerOverlap: function (player, sim) {
-    var playerBounds = player.getBounds();
-    var simBounds = sim.getBounds();
-
-    return Phaser.Rectangle.intersects(playerBounds, simBounds);
-  },*/
 
   //Devuelve un número aleatorio entre [min, max]
   randomNumber: function (min, max) {
@@ -250,9 +208,9 @@ var PlayScene = {
     var skinIndex = this.randomNumber(1, this.game.numSkins - 1); //skin random
 
     if (Math.random() > 0.5)
-      name = this.maleNames[this.randomNumber(0, this.maleNames.length)]; //Nombre masculino
+      name = this.maleNames[this.randomNumber(0, this.maleNames.length - 1)]; //Nombre masculino
     else
-      name = this.femaleNames[this.randomNumber(0, this.femaleNames.length)]; //Nombre femenino
+      name = this.femaleNames[this.randomNumber(0, this.femaleNames.length - 1)]; //Nombre femenino
 
 
     n = new Neighbour(this.game, this.player, 'sim' + skinIndex,
@@ -288,11 +246,6 @@ var PlayScene = {
       timer.stop();
     }, this);
     timer.start();
-
-    /*
-    this.neig2 = new Neighbour(this.game, 'sim' + index, 0, this.game.initialY + 60, 'Clara Lawson');
-    this.player.setFriend(this.neig2, 1);
-    */
   },
 
 
@@ -345,6 +298,7 @@ var PlayScene = {
     this.timeCounterText.fixedToCamera = true;
 
     //SUBMENÚS:  NEEDS, YOU, FRIENDS
+
     //  NEEDS
     //group
     this.needsGroup = this.game.add.group();
@@ -381,6 +335,9 @@ var PlayScene = {
         this.changeMenu(this.needsGroup);
         this.resetHUD();
         this.needsButton.loadTexture('needsIconSelected');
+
+        if (this.selectedHUD == 2) //friends menu
+          this.hideGroup(this.friendsExtraGroup);
         this.selectedHUD = 0;
       }
     });
@@ -429,31 +386,90 @@ var PlayScene = {
         this.changeMenu(this.youGroup);
         this.resetHUD();
         this.youButton.loadTexture('youIconSelected');
+
+        if (this.selectedHUD == 2) //friends menu
+          this.hideGroup(this.friendsExtraGroup);
         this.selectedHUD = 1;
       }
     });
     this.youButton.fixedToCamera = true;
 
+
     //  FRIENDS
     //group
     this.friendsGroup = this.game.add.group();
 
+    //for(var i = 0; i < this.player.getNumFriends();i++)
 
-    //var friend = this.player.getFriend(0);
+    for (var i = 0; i < Math.min(3, this.player.numFriends); i++) {
+      var txt = this.player.friends[i].name + '\n' + this.player.friends[i].points + 'friendship points';
+      this.friendsGroup.add(this.game.add.bitmapText(this.youIconX + this.youTextOffset,
+        this.hud_buttonsY, 'arcadeBlackFont',
+        txt, 20));
+    }
     /*this.friendText1 = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
       this.hud_buttonsY, 'arcadeBlackFont',
-      "AAAA", 20);*/
+      txt, 20);*/
 
     this.friendsGroup.forEach(function (elem) {
       elem.fixedToCamera = true;
       elem.scale.setTo(0.075, 0.075);
       elem.anchor.setTo(0.5, 0.5);
     });
-    ///
-    //  FIN DE INTERFAZ
-    ///
+
+    //extra group -> para los botones dentro del menú FRIENDS que no queremos que cambien al cambiar de página
+    this.friendsExtraGroup = this.game.add.group();
+
+    this.pageText = this.game.add.bitmapText(this.hud_buttonsX + this.hud_buttonW - 60, this.hud_buttonsY - 64, 'arcadeBlackFont',
+      'Page ' + this.friendsWindowPage + "/" + (Math.round(this.player.numFriends / 3) + 1), 18);
+
+    this.friendsExtraGroup.add(this.pageText);
+
+    //botón Next Page
+    var nextPageButton = this.addButton('nextButton', '',
+      this.hud_buttonsX + this.hud_buttonW - 150, this.hud_buttonsY - 64,
+      this.hud_buttonW, this.hud_buttonW,
+      function () {
+        this.friendsWindowPage = Math.max(1, Math.min(this.friendsWindowPage + 1,
+          Math.round(this.player.numFriends / 3) + 1
+        )); // página límite
+
+        this.updateFriendsHUD();
+      });
+
+    nextPageButton.scale.setTo(0.075, 0.075);
+    this.friendsExtraGroup.add(nextPageButton);
 
 
+    //botón Prev Page
+    var prevPageButton = this.addButton('prevButton', '',
+      this.hud_buttonsX + this.hud_buttonW - 150 - 54, this.hud_buttonsY - 64,
+      this.hud_buttonW, this.hud_buttonW,
+      function () {
+        this.friendsWindowPage = Math.max(1, this.friendsWindowPage - 1); // página límite
+
+        this.updateFriendsHUD();
+      });
+
+    prevPageButton.scale.setTo(0.075, 0.075);
+    this.friendsExtraGroup.add(prevPageButton);
+
+
+    //botón de reset de la lista de amigos
+    var resetButton = this.addButton('resetButton', '',
+      this.hud_buttonsX + this.hud_buttonW - 150 - 128, this.hud_buttonsY - 64,
+      this.hud_buttonW, this.hud_buttonW,
+      function () {
+        this.updateFriendsHUD();
+      });
+
+    resetButton.scale.setTo(0.075, 0.075);
+    this.friendsExtraGroup.add(resetButton);
+
+    this.friendsExtraGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+      elem.anchor.setTo(0.5, 0.5);
+    });
 
     //button
     this.friendsButton = this.addButton('friendsIcon', '', this.hud_buttonsX + 2 * this.hud_buttonW, this.hud_buttonsY, this.hud_buttonW, this.hud_buttonW, function () {
@@ -463,6 +479,7 @@ var PlayScene = {
         this.friendsButton.loadTexture('friendsIconSelected');
         this.selectedHUD = 2;
 
+        this.showGroup(this.friendsExtraGroup);
 
         //show friends
         this.updateFriendsHUD();
@@ -473,6 +490,7 @@ var PlayScene = {
     this.hideGroup(this.needsGroup);
     this.hideGroup(this.youGroup);
     this.hideGroup(this.friendsGroup);
+    this.hideGroup(this.friendsExtraGroup);
     this.showActualMenu();
   },
 
@@ -497,43 +515,26 @@ var PlayScene = {
   },
 
   updateFriendsHUD: function () {
+    this.friendsGroup.removeAll(true);
 
-    for (var i = 0; i < this.player.numFriends + 1; i++) {
+    this.pageText.setText('Page ' + this.friendsWindowPage + "/" + (Math.round(this.player.numFriends / 3) + 1));
 
-      var friend = this.player.getFriend(i);
+    for (var i = 0; i < Math.min(3, this.player.numFriends); i++) {
+      var index = i + (3 * (this.friendsWindowPage - 1));
+      if (this.player.searchFriendByIndex(index)) { //Si existe un amigo con este índice
+        var s = this.player.friends[index].name + '\n' + this.player.friends[index].points + ' friend points';
+        var txt = this.game.add.bitmapText(i * 180 + this.youIconX - 80 + this.youTextOffset,
+          this.hud_buttonsY, 'arcadeBlackFont',
+          s, 15)
 
-      this.friendsGroup.remove(this.friendText);
 
-      this.friendText = this.game.add.bitmapText(this.youIconX + this.youTextOffset,
-        this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
+        txt.fixedToCamera = true;
+        txt.align = "left";
+        txt.anchor.setTo(0, 0.5);
 
-      this.friendsGroup.add(this.friendText);
-      //console.log(this.friendText._text);
-      this.friendText.fixedToCamera = true;
-      this.friendText.align = "left";
-
-      this.friendText.anchor.setTo(0, 0.5);
+        this.friendsGroup.add(txt);
+      }
     }
-  },
-
-  //TEMPORAL///////////////////////////
-  updateFriendsHUD2: function () {
-
-
-
-    var friend = this.player.getFriend(1);
-
-    //this.friendsGroup.remove(this.friendText);
-
-    this.friendText2 = this.game.add.bitmapText((this.youIconX + this.youTextOffset) * 2,
-      this.hud_buttonsY, 'arcadeBlackFont', friend.name + "\n" + friend.friendship, 20);
-
-    this.friendsGroup.add(this.friendText2);
-    //console.log(this.friendText._text);
-    this.friendText2.fixedToCamera = true;
-    this.friendText2.align = "left";
-
-    this.friendText2.anchor.setTo(0, 0.5);
   },
 
   //Muestra el submenú de NEEDS/YOU/FRIENDS
@@ -551,7 +552,9 @@ var PlayScene = {
     oldGroup = this.getActualMenu();
 
     this.hideGroup(oldGroup);
+
     this.showGroup(newGroup);
+
   },
 
   getActualMenu: function () {
@@ -571,6 +574,12 @@ var PlayScene = {
 
     return menu;
   },
+
+
+  ///
+  //  FIN DE INTERFAZ
+  ///
+
 
   hideGroup: function (group) {
     group.forEach(function (elem) {

@@ -135,19 +135,19 @@ Player.prototype.update = function () {
     this.exchangeText.visible = false;
   }
 
- /* if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
-    this.needs.fatigue--;
-    console.log(this.needs.fatigue);
-  }
-  if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
-    this.needs.fatigue++;
-    console.log(this.needs.fatigue);
-  }
-  if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
-    this.money-=100;
-    
-    console.log(this.money);
-  }*/
+  /* if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
+     this.needs.fatigue--;
+     console.log(this.needs.fatigue);
+   }
+   if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
+     this.needs.fatigue++;
+     console.log(this.needs.fatigue);
+   }
+   if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
+     this.money-=100;
+     
+     console.log(this.money);
+   }*/
 }
 
 Player.prototype.peeingState = function () {
@@ -314,23 +314,39 @@ Player.prototype.getDir = function () {
   return this.dir;
 }
 
-Player.prototype.updateFriendship = function (neighbour) {
-  var neighName = neighbour.name;
-  var neighFriendship = neighbour.friendship;
-
-
-
-  this.friends[this.numFriends] = {
-    name: neighName,
-    friendship: neighFriendship
-  };
-
-  //console.log(this.friends[0]);
+Player.prototype.getNumFriends = function () {
+  return this.numFriends;
 }
 
-Player.prototype.getFriend = function (index) {
+//Busca al vecino en la lista de amigos y, si existe actualiza su amistad
+//Si no estaba en la lista, lo añade
+Player.prototype.updateFriendship = function (_name, _points) {
+  var found = false;
+  var i = 0;
 
-  return this.friends[index];
+  while (i < this.numFriends && !found) {
+    if (this.friends[i].name == _name)
+      found = true;
+    else
+      i++;
+  }
+
+  if (found) {
+    this.friends[i].points = _points;
+  } else {
+    this.friends.push({
+      name: _name,
+      points: _points
+    });
+    this.numFriends++;
+  }
+
+}
+
+//Devuelve true si existe un friend para el índice index
+Player.prototype.searchFriendByIndex = function (index) {
+
+  return this.friends[index] != undefined;
 }
 
 Player.prototype.setFriend = function (neighbour, index) {

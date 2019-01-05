@@ -62,10 +62,6 @@ Neighbour.prototype.handleState = function () {
 
       if (this.actualState == 'walkingToCenter' || this.actualState == 'wandering')
         this.talk();
-
-      /*this.player.updateFriendship(this);  ACTUALIZAR CADA VEZ QUE GENERA BURBUJA
-      if (this.selectedHUD == 2)
-        this.updateFriendsHUD();*/
     } else if (this.actualState != 'wandering' && this.actualState != 'walkingToCenter') {
       this.startWandering();
     }
@@ -177,6 +173,9 @@ Neighbour.prototype.generateDialogBubble = function () {
       this.friendship += 5;
       break;
   }
+
+  //Actualiza la amistad en la lista del jugador
+  this.player.updateFriendship(this.name, this.friendship);
 
 }
 
