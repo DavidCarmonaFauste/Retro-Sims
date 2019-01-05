@@ -8,10 +8,21 @@ body {
   margin: 0;
   font-family: Courier, 'Courier New', monospace;
   font-size: 1.6rem;
-  background: #fff;
   color: #000;
 }
+.background {
+  position: fixed;
+  z-index: -1;
 
+  background: url(images/AE.png)
+  100% 50% no-repeat fixed;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+
+  filter: blur(5px);
+  background-color: hsl(118, 100%, 87%);
+}
 
 a {
   color: #c39;
