@@ -19,7 +19,8 @@ var PlayScene = {
     //Recibe los datos del jugador guardados en localStorage
     this.playerData = localStorage.getItem("playerData");
     this.playerParams = JSON.parse(this.playerData);
-    console.log(this.playerParams);
+    //console.log(this.playerParams);
+    this.game.gameOverData = {};
   },
 
   //CREATE
@@ -66,9 +67,11 @@ var PlayScene = {
     this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
+      day:0,
       hour: 12,
       minute: 0
     };
+    //loop de tiempo
     this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
 
     //Información que se muestra en el hud:
@@ -130,9 +133,9 @@ var PlayScene = {
       this.spawnSim();
     }
 
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
       console.log(this.player.friends);
-    }
+    }*/
     //////////////////////////////
 
     //Activar el modo edición
@@ -154,11 +157,35 @@ var PlayScene = {
     this.updateNeeds();
 
     if (this.player.currentState == 'sleeping') { //Si el jugador está durmiendo, avanza el tiempo 8 horas
+      if(this.timeCounter.hour + 8 > 23)  //si pasa de día al dormir, actualiza timecounter.day
+        this.timeCounter.day++; 
+
       this.timeCounter.hour = (this.timeCounter.hour + 8) % 23;
       this.player.currentState = 'waking up'; //para que no siga aumentando en cada update
-    } else if(this.player.currentState == 'active')
+    } else if (this.player.currentState == 'active')
       this.timeCounterText.setText(this.getTimeText()); //Actualiza el texto del tiempo
-    this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
+    
+      this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
+
+    //Comprueba si ha perdido
+      this.checkGameOver();
+  },
+
+  checkGameOver: function () {
+    if (this.player.needs.pee <= 0) {
+      this.game.gameOverData.deathCause = 'pee';
+      this.gameOver();
+    } else if (this.player.needs.hunger <= 0) {
+      this.game.gameOverData.deathCause = 'hunger';
+      this.gameOver();
+    } else if (this.player.needs.fatigue <= 0) {
+      this.game.gameOverData.deathCause = 'fatigue';
+      this.gameOver();
+    } else if (this.player.money <= 0) {
+      this.game.gameOverData.deathCause = 'money';
+      this.gameOver();
+    }
+
   },
 
   //Actualiza la longitud de las barras de necesidad del hud y reduce todas las necesidades cada X minutos(minutos del juego)
@@ -181,8 +208,10 @@ var PlayScene = {
     else {
       if (this.timeCounter.hour < 23)
         this.timeCounter.hour++;
-      else
+      else{
         this.timeCounter.hour = 0;
+        this.timeCounter.day++;
+      }
       this.timeCounter.minute = 0;
     }
   },
@@ -277,7 +306,7 @@ var PlayScene = {
     //this.hud_barOffset = 
 
     //player's name
-    this.hud_playerName = this.game.add.bitmapText(this.hud_x/2, this.hud_y + 10, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
+    this.hud_playerName = this.game.add.bitmapText(this.hud_x / 2, this.hud_y + 10, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
     this.hud_playerName.align = "left";
     this.hud_playerName.fixedToCamera = true;
 
@@ -498,7 +527,8 @@ var PlayScene = {
   },
 
   getTimeText: function () {
-    return ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
+    return "Day: " + (this.timeCounter.day + 1) + "\n" + 
+    ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
   },
 
   //deselecciona el submenú actual del hud
@@ -610,7 +640,22 @@ var PlayScene = {
     txt.fixedToCamera = true;
 
     return button;
+  },
+
+  ///////////////////////////////////////
+  ///            GAME OVER           ///
+  /////////////////////////////////////
+  gameOver: function () {
+    this.game.gameOverData.name = this.player.name;
+    this.game.gameOverData.numFriends = this.player.numFriends;
+    this.game.gameOverData.money = this.player.money;
+    this.game.gameOverData.days = this.timeCounter.day;
+    
+    this.game.world.setBounds(0,0,800,600); //Restaura las dimensiones del world(modificadas por el tilemap)
+
+    this.game.state.start('gameOver'); //Empieza gameOverScene
   }
+
 };
 
 module.exports = PlayScene;

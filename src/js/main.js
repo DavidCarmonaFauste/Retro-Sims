@@ -3,6 +3,7 @@
 var PlayScene = require('./play_scene.js');
 var CreationScene = require('./creation_scene.js') //Escena de creación de personaje
 var MenuScene = require('./menu_scene.js');
+var GameOverScene = require('./gameOver_scene');
 
 var BootScene = {
   preload: function () {
@@ -57,6 +58,8 @@ var PreloaderScene = {
     this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
     this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
     this.game.load.image('resetButton', 'images/hud/resetButton.png'); 
+    this.game.load.image('grave', 'images/GameOverScreen.png'); 
+
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
@@ -116,6 +119,7 @@ window.onload = function () {
   game.state.add('play', PlayScene);
   game.state.add('menu', MenuScene); //Main menu
   game.state.add('characterCreation', CreationScene); //Escena de creación de personaje
+  game.state.add('gameOver', GameOverScene); //Escena de fin de juego
 
   game.state.start('boot');
 };

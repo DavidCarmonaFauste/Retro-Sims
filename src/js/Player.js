@@ -143,14 +143,13 @@ Player.prototype.update = function () {
     this.exchangeText.visible = false;
   }
 
-  /* if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
-     this.needs.fatigue--;
-     console.log(this.needs.fatigue);
+  if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
+     this.needs.fatigue=0;
    }
    if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
      this.needs.fatigue++;
      console.log(this.needs.fatigue);
-   }
+   }/*
    if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
      this.money-=100;
      
