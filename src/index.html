@@ -11,10 +11,51 @@
       width: 800px;
       height: 600px;
     }
+  #myBtn {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 30px;
+  z-index: 99;
+  font-size: 18px;
+  border: none;
+  outline: none;
+  background-color: rgb(94, 255, 0);
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  padding: 15px;
+  border-radius: 4px;
+}
+
+#myBtn:hover {
+  background-color: #555;
+  color: white;
+}
   </style>
 </head>
 
 <body>
+
+  <button onclick="topFunction()" id="myBtn" title="Go to game">Play</button>
+  
+  <script>
+  // When the user scrolls down 20px from the top of the document, show the button
+  window.onscroll = function() {scrollFunction()};
+  
+  function scrollFunction() {
+    if (document.body.scrollTop > 180 || document.documentElement.scrollTop > 180) {
+      document.getElementById("myBtn").style.display = "block";
+    } else {
+      document.getElementById("myBtn").style.display = "none";
+    }
+  }
+  
+  // When the user clicks on the button, scroll to the top of the document
+  function topFunction() {
+    document.body.scrollTop = 175;
+    document.documentElement.scrollTop = 175;
+  }
+  </script>
 
   <main>
     <div class="background"></div>
@@ -30,23 +71,26 @@
     </div>
 </main>
 
-  <footer>
-    <p>(Work in progress)</p>
-    <h2>Controls:</h2>
-    <p><pre>Use <strong>ARROW KEYS</strong> to move
-    Use <strong>SPACEBAR</strong> to interact with objects
-  Press <strong>CTRL+SHIFT+J</strong> to open Chrome's Console, interactions will be shown there.
-  (This is temporal, as we are working in the real interactions)
-  
+  <footer style="color:white;">
+   
+    <h2>
+      <p>V.14</p>
+    </h2>
+    
+  <strong>RetroSims</strong> is a remake from the original game ¨The Sims¨ giving it a retro looking and keeping the origial mechanics.
+  <p><strong>• Customize</strong> your avatar.</p>
+  <p><strong>• Meet</strong> your neighbour.</p> 
+  <p><strong>• </strong>Look to your <strong>needs</strong> and your <strong>friends</strong>.</p>
+ 
   
   </pre></p>
 
-    by <a href="https://github.com/DavidCarmonaFauste">David Carmona Fauste</a> and <a href="https://github.com/mariotab28">Mario
+  <strong>RetroSims</strong> is a game by :<a href="https://github.com/DavidCarmonaFauste">David Carmona Fauste</a> and <a href="https://github.com/mariotab28">Mario
       Tabasco Vargas</a></p>
     <p class="license">Published under the <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/">Creative Commons
         Attribution-NonCommercial-ShareAlike</a>
       license.</p>
-
+      <img id="AE" src="images/AE.png" width="200" height="200"alt="RETRO-SIMS" />
   </footer>
 </body>
 

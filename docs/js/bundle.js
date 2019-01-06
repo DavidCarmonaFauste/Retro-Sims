@@ -534,14 +534,13 @@ Player.prototype.update = function () {
     this.exchangeText.visible = false;
   }
 
-  /* if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
-     this.needs.fatigue--;
-     console.log(this.needs.fatigue);
+  if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
+     this.needs.fatigue=0;
    }
    if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
      this.needs.fatigue++;
      console.log(this.needs.fatigue);
-   }
+   }/*
    if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
      this.money-=100;
      
@@ -1066,9 +1065,90 @@ module.exports = CreationScene;
 },{}],6:[function(require,module,exports){
 'use strict';
 
+var GameOverScene = {
+    //CREATE
+    create: function () {
+        //tumba
+        var grave = this.game.add.image(
+            this.game.world.centerX - 100, this.game.world.centerY, 'grave');
+        grave.anchor.setTo(0.5, 0.5);
+        grave.scale.setTo(0.25, 0.25);
+
+
+        this.camera.setPosition(grave.x - 280, grave.y - 300);
+
+
+        //texto de la lápida
+        var graveText = this.game.add.bitmapText(grave.x, grave.y + 20, 'arcadeBlackFont',
+        this.game.gameOverData.name + '\n\nYour ' + this.game.gameOverData.numFriends 
+        + ' friends\nwill not forget you.\n\n' + ((this.game.gameOverData.days%30)+1) + '/'+ (Math.max(1,this.game.gameOverData.days%30)%12) +'/19XX', 20);
+        //La fecha de la lápida refleja el día en el que moriste
+        graveText.anchor.setTo(0.5, 1);
+        graveText.align = "center";
+
+        //texto de la derecha
+        var deathCauseString = '';
+        switch (this.game.gameOverData.deathCause) {
+            case 'pee':
+                deathCauseString = "storing too much pee\nin your\nsim's body.";
+                break;
+            case 'hunger':
+                deathCauseString = "starving.";
+                break;
+            case 'fatigue':
+                deathCauseString = " exhaustion.\n\nSleeping at least\n8 hours per day\nis recommended unless\nyou are a\nvideogame developer.";
+                break;
+            case 'money':
+                deathCauseString = "losing all your money,\nwhich in RetrosimCity means DEATH.";
+                break;
+        }
+
+        var extraText = this.game.add.bitmapText(grave.x + 350, grave.y + 20, 'arcadeWhiteFont',
+            'You died from\n' + deathCauseString +
+            '\n\nYou lived for\n' + this.game.gameOverData.days + ' days' +
+            '\n\nYou had\n' + this.game.gameOverData.money + ' EUROS', 20);
+        extraText.anchor.setTo(0.5, 1);
+        extraText.align = "center";
+
+        //Botón para ir al menú
+        var menuButton = this.addButton('nextButton', '',
+            grave.x + 450, grave.y + 225,
+            64, 64,
+            function () {
+                this.game.state.start('menu');
+            });
+
+    },
+
+    /*render: function(){
+        this.game.debug.spriteInfo(this.hud_mainBox, 32, 32);
+    },*/
+
+
+    addButton: function (sprite, string, x, y, w, h, callback) {
+        var button = this.game.add.button(x, y, sprite, callback, this, 2, 1, 0);
+
+        button.anchor.setTo(0.5, 0.5);
+        button.width = w;
+        button.height = h;
+
+        var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 20);
+        txt.anchor.setTo(0.5, 0.5);
+        txt.align = "center";
+        txt.fixedToCamera = true;
+
+        return button;
+    }
+};
+
+module.exports = GameOverScene;
+},{}],7:[function(require,module,exports){
+'use strict';
+
 var PlayScene = require('./play_scene.js');
 var CreationScene = require('./creation_scene.js') //Escena de creación de personaje
 var MenuScene = require('./menu_scene.js');
+var GameOverScene = require('./gameOver_scene');
 
 var BootScene = {
   preload: function () {
@@ -1123,6 +1203,8 @@ var PreloaderScene = {
     this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
     this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
     this.game.load.image('resetButton', 'images/hud/resetButton.png'); 
+    this.game.load.image('grave', 'images/GameOverScreen.png'); 
+
 
     // Tilemaps y tilesets
     this.game.load.tilemap('map', 'images/tiles/tilemaps/tilemap2.json', null, Phaser.Tilemap.TILED_JSON);
@@ -1182,10 +1264,11 @@ window.onload = function () {
   game.state.add('play', PlayScene);
   game.state.add('menu', MenuScene); //Main menu
   game.state.add('characterCreation', CreationScene); //Escena de creación de personaje
+  game.state.add('gameOver', GameOverScene); //Escena de fin de juego
 
   game.state.start('boot');
 };
-},{"./creation_scene.js":5,"./menu_scene.js":7,"./play_scene.js":8}],7:[function(require,module,exports){
+},{"./creation_scene.js":5,"./gameOver_scene":6,"./menu_scene.js":8,"./play_scene.js":9}],8:[function(require,module,exports){
 'use strict';
 
 var MenuScene = {
@@ -1232,7 +1315,7 @@ function addButton(game, string, x, y, w, h, callback) {
 
 
 module.exports = MenuScene;
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 'use strict';
 
 //requires de las clases
@@ -1254,7 +1337,8 @@ var PlayScene = {
     //Recibe los datos del jugador guardados en localStorage
     this.playerData = localStorage.getItem("playerData");
     this.playerParams = JSON.parse(this.playerData);
-    console.log(this.playerParams);
+    //console.log(this.playerParams);
+    this.game.gameOverData = {};
   },
 
   //CREATE
@@ -1301,9 +1385,11 @@ var PlayScene = {
     this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
+      day:0,
       hour: 12,
       minute: 0
     };
+    //loop de tiempo
     this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
 
     //Información que se muestra en el hud:
@@ -1365,9 +1451,9 @@ var PlayScene = {
       this.spawnSim();
     }
 
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
+    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
       console.log(this.player.friends);
-    }
+    }*/
     //////////////////////////////
 
     //Activar el modo edición
@@ -1389,11 +1475,35 @@ var PlayScene = {
     this.updateNeeds();
 
     if (this.player.currentState == 'sleeping') { //Si el jugador está durmiendo, avanza el tiempo 8 horas
+      if(this.timeCounter.hour + 8 > 23)  //si pasa de día al dormir, actualiza timecounter.day
+        this.timeCounter.day++; 
+
       this.timeCounter.hour = (this.timeCounter.hour + 8) % 23;
       this.player.currentState = 'waking up'; //para que no siga aumentando en cada update
-    } else if(this.player.currentState == 'active')
+    } else if (this.player.currentState == 'active')
       this.timeCounterText.setText(this.getTimeText()); //Actualiza el texto del tiempo
-    this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
+    
+      this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
+
+    //Comprueba si ha perdido
+      this.checkGameOver();
+  },
+
+  checkGameOver: function () {
+    if (this.player.needs.pee <= 0) {
+      this.game.gameOverData.deathCause = 'pee';
+      this.gameOver();
+    } else if (this.player.needs.hunger <= 0) {
+      this.game.gameOverData.deathCause = 'hunger';
+      this.gameOver();
+    } else if (this.player.needs.fatigue <= 0) {
+      this.game.gameOverData.deathCause = 'fatigue';
+      this.gameOver();
+    } else if (this.player.money <= 0) {
+      this.game.gameOverData.deathCause = 'money';
+      this.gameOver();
+    }
+
   },
 
   //Actualiza la longitud de las barras de necesidad del hud y reduce todas las necesidades cada X minutos(minutos del juego)
@@ -1416,8 +1526,10 @@ var PlayScene = {
     else {
       if (this.timeCounter.hour < 23)
         this.timeCounter.hour++;
-      else
+      else{
         this.timeCounter.hour = 0;
+        this.timeCounter.day++;
+      }
       this.timeCounter.minute = 0;
     }
   },
@@ -1512,7 +1624,7 @@ var PlayScene = {
     //this.hud_barOffset = 
 
     //player's name
-    this.hud_playerName = this.game.add.bitmapText(this.hud_x/2, this.hud_y + 10, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
+    this.hud_playerName = this.game.add.bitmapText(this.hud_x / 2, this.hud_y + 10, 'arcadeBlackFont', this.player.name, 20); //(this.hud_mainBox.x, this.hud_mainBox.y, 'arcadeBlackFont', this.player.name, 20);
     this.hud_playerName.align = "left";
     this.hud_playerName.fixedToCamera = true;
 
@@ -1733,7 +1845,8 @@ var PlayScene = {
   },
 
   getTimeText: function () {
-    return ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
+    return "Day: " + (this.timeCounter.day + 1) + "\n" + 
+    ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
   },
 
   //deselecciona el submenú actual del hud
@@ -1845,8 +1958,23 @@ var PlayScene = {
     txt.fixedToCamera = true;
 
     return button;
+  },
+
+  ///////////////////////////////////////
+  ///            GAME OVER           ///
+  /////////////////////////////////////
+  gameOver: function () {
+    this.game.gameOverData.name = this.player.name;
+    this.game.gameOverData.numFriends = this.player.numFriends;
+    this.game.gameOverData.money = this.player.money;
+    this.game.gameOverData.days = this.timeCounter.day;
+    
+    this.game.world.setBounds(0,0,800,600); //Restaura las dimensiones del world(modificadas por el tilemap)
+
+    this.game.state.start('gameOver'); //Empieza gameOverScene
   }
+
 };
 
 module.exports = PlayScene;
-},{"./Map":2,"./Neighbour":3,"./Player":4}]},{},[6]);
+},{"./Map":2,"./Neighbour":3,"./Player":4}]},{},[7]);
