@@ -47,7 +47,7 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.exchangeTimer = this.game.time.create(true); //Timer para hacer que desaparezca el texto informativo de los ingresos/gastos
   this.foodPrice = 10;
   //Trabajo
-  this.job = 'unemployed';
+  this.job = {name: 'Unemployed', wage: 0};
   //Nombre
   this.name = name;
   //Activo
@@ -190,8 +190,9 @@ Player.prototype.eatingState = function () {
   }
 }
 
-Player.prototype.sleepingState = function () {
-
+Player.prototype.resetPosition = function () {
+  this.x = this.game.initialX;
+  this.y = this.game.initialY;
 }
 
 Player.prototype.move = function () {

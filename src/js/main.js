@@ -64,6 +64,9 @@ var PreloaderScene = {
     this.game.load.image('resetButton', 'images/hud/resetButton.png');
     this.game.load.image('musicButton', 'images//hud/musicButton.png');  
     this.game.load.image('musicOffButton', 'images//hud/musicOffButton.png');  
+    this.game.load.image('buildButton', 'images//hud/buildButton.png'); 
+    this.game.load.image('jobsButton', 'images//hud/jobsButton.png'); 
+    this.game.load.image('basicButton', 'images//hud/basicButton.png'); 
 
 
     // Tilemaps y tilesets
@@ -94,6 +97,9 @@ var PreloaderScene = {
     this.game.load.audio('eating', 'audio/eating.wav');
     this.game.load.audio('sleeping', 'audio/sleeping.wav');
     this.game.load.audio('death', 'audio/death.wav');
+    this.game.load.audio('job', 'audio/job.wav');
+    this.game.load.audio('goToJob', 'audio/goToJob.wav');
+    this.game.load.audio('money', 'audio/money.wav');
     this.game.load.audio('playSceneMusic', 'audio/Silly Fun.mp3');
   },
 

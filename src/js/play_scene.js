@@ -31,10 +31,15 @@ var PlayScene = {
     this.game.playSceneMusic.loop = true; //loop
     this.game.playSceneMusic.volume = 0.055; //volumen
 
+    this.jobSound = this.game.add.audio('job');
+    this.goToJobSound = this.game.add.audio('goToJob');
+    this.moneySound = this.game.add.audio('money');
+
     //Valores iniciales
-    this.game.initialX = this.game.world.centerX, this.game.initialY = 3500;
+    this.atWork = false;
+    this.game.initialX = this.game.world.centerX + 900, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
-    this.neighbourSpawnRate = 5;
+    this.neighbourSpawnRate = 50; //en minutos del juego
     this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
     var NUM_NEIGHBOURS = 10; //número total de vecinos
     this.maleNames = [ //Array de nombres masculinos
@@ -69,15 +74,61 @@ var PlayScene = {
       'Kate Jackson',
       'Mei Ling'
     ];
-    this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
+    this.timeSpeed = 50; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
       day: 0,
-      hour: 12,
+      hour: 6,
       minute: 0
     };
     //loop de tiempo
     this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
+
+    //Trabajos posibles -> nombre, salario, habilidad necesaria, puntos de habilidad necesarios
+    this.jobs = {
+      waiter: {
+        name: 'Bar Waiter/Waitress',
+        wage: 100,
+        skillName: 'none',
+        skillPts: 0
+      },
+      scienceIntern: {
+        name: 'Science Lab Intern',
+        wage: 250,
+        skillName: 'int',
+        skillPts: 5
+      },
+      gymTrainer: {
+        name: 'Gym Trainer',
+        wage: 200,
+        skillName: 'fit',
+        skillPts: 5
+      },
+      hotelEntertainer: {
+        name: 'Hotel Entertainer',
+        wage: 180,
+        skillName: 'cha',
+        skillPts: 5
+      },
+      cernScientist: {
+        name: 'CERN Scientist',
+        wage: 400,
+        skillName: 'int',
+        skillPts: 10
+      },
+      proBodybuilder: {
+        name: 'Professional Bodybuilder',
+        wage: 450,
+        skillName: 'fit',
+        skillPts: 10
+      },
+      rockStar: {
+        name: 'Rock Star',
+        wage: 500,
+        skillName: 'cha',
+        skillPts: 10
+      }
+    };
 
     //Información que se muestra en el hud:
     // 0: NEEDS
@@ -91,6 +142,7 @@ var PlayScene = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.editMode = false;
+    this.inJobsMenu = false;
 
     //Tilemap
     this.map = new Map(this);
@@ -138,10 +190,10 @@ var PlayScene = {
       this.spawnSim();
     }
 
-    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-      console.log(this.player.friends);
-    }*/
-    //////////////////////////////
+    //Ir al trabajo
+    if (this.timeCounter.hour == 8 && this.player.job.name != 'Unemployed' && !this.atWork) {
+      this.goToWork();
+    }
 
     //Activar el modo edición
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
@@ -208,17 +260,18 @@ var PlayScene = {
 
   //actualiza el contador de tiempo adecuadamente
   updateTimeCounter: function () {
-    if (this.timeCounter.minute < 59)
-      this.timeCounter.minute++;
-    else {
-      if (this.timeCounter.hour < 23)
-        this.timeCounter.hour++;
+      if (this.timeCounter.minute < 59)
+        this.timeCounter.minute++;
       else {
-        this.timeCounter.hour = 0;
-        this.timeCounter.day++;
+        if (this.timeCounter.hour < 23)
+          this.timeCounter.hour++;
+        else {
+          this.timeCounter.hour = 0;
+          this.timeCounter.day++;
+        }
+        this.timeCounter.minute = 0;
       }
-      this.timeCounter.minute = 0;
-    }
+    
   },
 
 
@@ -285,6 +338,34 @@ var PlayScene = {
     timer.start();
   },
 
+  payBills: function () {
+
+  },
+
+  goToWork: function () {
+    this.goToJobSound.play();
+    this.timeCounter.hour = 15;
+    this.timeCounter.minute = 50;
+    this.atWork = true;
+    this.game.camera.fade(0x000000, 500);
+
+    var auxTimer = this.game.time.create(true);
+    auxTimer.loop(3000, function () {
+      this.player.resetPosition();
+      this.player.money += this.player.job.wage;
+      this.showMessage("You went to work and\nearned " + this.player.job.wage + " EUROS!")
+
+      this.game.camera.resetFX();
+      this.moneySound.play();
+
+      this.atWork = false;
+      auxTimer.stop();
+    }, this);
+    auxTimer.start();
+
+
+  },
+
 
   ////////////////////////////////////////////////////////////
   //                        INTERFAZ                       //
@@ -349,8 +430,26 @@ var PlayScene = {
       }
     });
     musicButton.fixedToCamera = true;
+    musicButton.scale.setTo(0.075, 0.075);
 
-    musicButton.scale.setTo(0.075,0.075);
+    //BUILD MODE BUTTON
+    var buildButton = this.addButton('buildButton', '', window.innerWidth - this.timeCounter_offset + 60, 170, this.hud_buttonW, this.hud_buttonW, function () {
+      this.showJobs();
+    });
+    buildButton.fixedToCamera = true;
+    buildButton.scale.setTo(0.075, 0.075);
+
+    //JOBS BUTTON
+    this.jobsGroup = this.game.add.group();
+    var jobsButton = this.addButton('jobsButton', '', window.innerWidth - this.timeCounter_offset + 60, 220, this.hud_buttonW, this.hud_buttonW, function () {
+      if (!this.inJobsMenu)
+        this.showJobs();
+      else
+        this.hideJobs();
+    });
+    jobsButton.fixedToCamera = true;
+    jobsButton.scale.setTo(0.075, 0.075);
+
 
     //SUBMENÚS:  NEEDS, YOU, FRIENDS
 
@@ -554,6 +653,123 @@ var PlayScene = {
       ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
   },
 
+  applyForJob: function (job) {
+    var enoughSkill = false;
+
+    //Comprueba que el jugador tiene suficientes puntos de la habilidad requerida
+    switch (job.skillName) {
+      case 'int':
+        if (this.player.stats.intelligence >= job.skillPts) enoughSkill = true;
+        break;
+      case 'fit':
+        if (this.player.stats.fitness >= job.skillPts) enoughSkill = true;
+        break;
+      case 'cha':
+        if (this.player.stats.charisma >= job.skillPts) enoughSkill = true;
+        break;
+    }
+
+    if (enoughSkill) {
+      this.player.job = job;
+      this.hideJobs();
+      this.jobSound.play();
+
+      this.showMessage('You were chosen to\nstart working as a\n' + this.player.job.name + "!");
+    }
+  },
+
+  displayJobInfo: function (job, x, y) {
+    var skillIconDim = 32;
+    var skillIconKey = '';
+    switch (job.skillName) {
+      case 'int':
+        skillIconKey = 'intelligenceIcon';
+        break;
+      case 'fit':
+        skillIconKey = 'fitnessIcon';
+        break;
+      case 'cha':
+        skillIconKey = 'charismaIcon';
+        break;
+    }
+
+    var jobNameX = x + skillIconDim + 37;
+
+    if (skillIconKey != '') {
+      var skillIcon = this.game.add.image(
+        x, y, skillIconKey);
+      skillIcon.anchor.setTo(0, 0);
+      skillIcon.width = skillIconDim;
+      skillIcon.height = skillIconDim;
+      this.jobsGroup.add(skillIcon);
+
+      var skillPts = this.game.add.bitmapText(jobNameX - 32, y, 'arcadeBlackFont', job.skillPts, 16);
+      this.jobsGroup.add(skillPts);
+    }
+
+    var jobName = this.game.add.bitmapText(jobNameX + 16, y, 'arcadeBlackFont', job.name + "\nWage: " + job.wage + " EUROS", 16);
+    this.jobsGroup.add(jobName);
+
+    var applyButton = this.addButton('basicButton', 'APPLY', jobNameX + 300, y + 20, skillIconDim + 20, skillIconDim, function () {
+      this.applyForJob(job);
+    }, 10, true);
+    this.jobsGroup.add(applyButton[0]);
+    this.jobsGroup.add(applyButton[1]);
+  },
+
+  //Abre el menú JOBS
+  showJobs: function () {
+    this.inJobsMenu = true;
+
+    var panelW, panelH, panelX, panelY;
+    panelW = window.innerWidth / 1.5;
+    panelX = window.innerWidth / 2 - panelW / 2;
+    panelH = window.innerHeight - window.innerHeight / 8;
+    panelY = 16; //window.innerHeight / 2 - panelH / 2;
+
+    var jobsPanel = this.game.add.image(
+      panelX, panelY, 'hudBox');
+    jobsPanel.anchor.setTo(0, 0);
+    jobsPanel.width = panelW;
+    jobsPanel.height = panelH;
+    this.jobsGroup.add(jobsPanel);
+
+    var yourJobsText = this.game.add.bitmapText(panelX + 16, panelY + 32, 'arcadeBlackFont', "Your job:\n" + this.player.job.name + "\nWage: " + this.player.job.wage + " EUROS", 16);
+    this.jobsGroup.add(yourJobsText);
+
+    var scheduleText = this.game.add.bitmapText(panelX + 300, panelY + 32, 'arcadeBlackFont', "Working hours:\n8:00 - 16:00", 16);
+    this.jobsGroup.add(scheduleText);
+
+    var availableJobsText = this.game.add.bitmapText(panelX + 16, panelY + 128, 'arcadeBlackFont', "Available jobs:", 16);
+    this.jobsGroup.add(availableJobsText);
+
+    var yJobOffset = 50;
+
+    //Mostrar todos los trabajos disponibles
+    var cont = 0;
+    for (var key in this.jobs) {
+      if (this.jobs.hasOwnProperty(key)) {
+        if (this.jobs[key] != this.player.job) {
+          this.displayJobInfo(this.jobs[key], panelX + 16, availableJobsText.y + 24 + yJobOffset * cont);
+          cont++;
+        }
+      }
+    }
+
+
+
+    this.jobsGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+    });
+  },
+
+  //Cierra el menú JOBS
+  hideJobs: function () {
+    this.inJobsMenu = false;
+
+    this.hideGroup(this.jobsGroup);
+  },
+
   //deselecciona el submenú actual del hud
   resetHUD: function () {
     switch (this.selectedHUD) {
@@ -591,6 +807,38 @@ var PlayScene = {
         this.friendsGroup.add(txt);
       }
     }
+  },
+
+  showMessage: function (message) {
+    //PANEL
+    var panelW, panelH, panelX, panelY;
+    panelW = window.innerWidth / 3;
+    panelX = window.innerWidth / 2 - panelW / 2;
+    panelH = window.innerHeight / 3;
+    panelY = 16; //window.innerHeight / 2 - panelH / 2;
+
+    var panel = this.game.add.image(
+      panelX, panelY, 'hudBox');
+    panel.anchor.setTo(0, 0);
+    panel.width = panelW;
+    panel.height = panelH;
+    panel.fixedToCamera = true;
+
+    //TEXT
+    var text = this.game.add.bitmapText(panelX + 16, panelY + 32, 'arcadeBlackFont', message, 16);
+    text.fixedToCamera = true;
+
+    var quitText = this.game.add.bitmapText(panelX + panelW / 2, panelY + panelW - 90, 'arcadeBlackFont', '(Click inside to close)', 16);
+    quitText.fixedToCamera = true;
+    quitText.anchor.setTo(0.5, 0.5);
+    quitText.align = "center";
+
+    panel.inputEnabled = true;
+    panel.events.onInputDown.add(function () {
+      panel.destroy();
+      text.destroy();
+      quitText.destroy();
+    });
   },
 
   //Muestra el submenú de NEEDS/YOU/FRIENDS
@@ -638,9 +886,11 @@ var PlayScene = {
 
 
   hideGroup: function (group) {
-    group.forEach(function (elem) {
+    /*group.forEach(function (elem) {
       elem.kill();
-    });
+    });*/
+
+    group.callAll('kill');
   },
 
   showGroup: function (group) {
@@ -650,19 +900,24 @@ var PlayScene = {
   },
 
   //Crea un botón
-  addButton: function (sprite, string, x, y, w, h, callback) {
+  addButton: function (sprite, string, x, y, w, h, callback, fontSize, returnText) {
+    fontSize = fontSize || 20;
+    returnText = returnText || false;
     var button = this.game.add.button(x, y, sprite, callback, this, 2, 1, 0);
 
     button.anchor.setTo(0.5, 0.5);
     button.width = w;
     button.height = h;
 
-    var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 20);
+    var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, fontSize);
     txt.anchor.setTo(0.5, 0.5);
     txt.align = "center";
     txt.fixedToCamera = true;
 
-    return button;
+    if (returnText)
+      return [button, txt];
+    else
+      return button;
   },
 
   ///////////////////////////////////////
