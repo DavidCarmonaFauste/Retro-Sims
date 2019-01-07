@@ -25,6 +25,11 @@ var PlayScene = {
 
   //CREATE
   create: function () {
+    this.game.theme.stop();
+
+    this.game.playSceneMusic.play(); //Empieza la música de playScene
+    this.game.playSceneMusic.loop = true; //loop
+    this.game.playSceneMusic.volume = 0.055; //volumen
 
     //Valores iniciales
     this.game.initialX = this.game.world.centerX, this.game.initialY = 3500;
@@ -67,7 +72,7 @@ var PlayScene = {
     this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
-      day:0,
+      day: 0,
       hour: 12,
       minute: 0
     };
@@ -157,18 +162,18 @@ var PlayScene = {
     this.updateNeeds();
 
     if (this.player.currentState == 'sleeping') { //Si el jugador está durmiendo, avanza el tiempo 8 horas
-      if(this.timeCounter.hour + 8 > 23)  //si pasa de día al dormir, actualiza timecounter.day
-        this.timeCounter.day++; 
+      if (this.timeCounter.hour + 8 > 23) //si pasa de día al dormir, actualiza timecounter.day
+        this.timeCounter.day++;
 
       this.timeCounter.hour = (this.timeCounter.hour + 8) % 23;
       this.player.currentState = 'waking up'; //para que no siga aumentando en cada update
     } else if (this.player.currentState == 'active')
       this.timeCounterText.setText(this.getTimeText()); //Actualiza el texto del tiempo
-    
-      this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
+
+    this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
 
     //Comprueba si ha perdido
-      this.checkGameOver();
+    this.checkGameOver();
   },
 
   checkGameOver: function () {
@@ -208,7 +213,7 @@ var PlayScene = {
     else {
       if (this.timeCounter.hour < 23)
         this.timeCounter.hour++;
-      else{
+      else {
         this.timeCounter.hour = 0;
         this.timeCounter.day++;
       }
@@ -328,6 +333,24 @@ var PlayScene = {
       20);
     this.timeCounterText.align = "left";
     this.timeCounterText.fixedToCamera = true;
+
+    //MUSIC ON/OFF BUTTON
+    var musicButton = this.addButton('musicButton', '', window.innerWidth - this.timeCounter_offset + 60, 120, this.hud_buttonW, this.hud_buttonW, function () {
+      if (this.selectedHUD != 2) {
+        if (this.game.playSceneMusic.isPlaying) {
+          this.game.playSceneMusic.stop();
+          musicButton.loadTexture('musicOffButton');
+          console.log('o');
+        } else {
+          this.game.playSceneMusic.play();
+          musicButton.loadTexture('musicButton');
+          console.log('A');
+        }
+      }
+    });
+    musicButton.fixedToCamera = true;
+
+    musicButton.scale.setTo(0.075,0.075);
 
     //SUBMENÚS:  NEEDS, YOU, FRIENDS
 
@@ -527,8 +550,8 @@ var PlayScene = {
   },
 
   getTimeText: function () {
-    return "Day: " + (this.timeCounter.day + 1) + "\n" + 
-    ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
+    return "Day: " + (this.timeCounter.day + 1) + "\n" +
+      ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
   },
 
   //deselecciona el submenú actual del hud
@@ -646,12 +669,18 @@ var PlayScene = {
   ///            GAME OVER           ///
   /////////////////////////////////////
   gameOver: function () {
+    if (this.game.playSceneMusic.isPlaying)
+      this.game.playSceneMusic.stop();
+    var deathSound = this.game.add.audio('death');
+    deathSound.play();
+
+
     this.game.gameOverData.name = this.player.name;
     this.game.gameOverData.numFriends = this.player.numFriends;
     this.game.gameOverData.money = this.player.money;
     this.game.gameOverData.days = this.timeCounter.day;
-    
-    this.game.world.setBounds(0,0,800,600); //Restaura las dimensiones del world(modificadas por el tilemap)
+
+    this.game.world.setBounds(0, 0, 800, 600); //Restaura las dimensiones del world(modificadas por el tilemap)
 
     this.game.state.start('gameOver'); //Empieza gameOverScene
   }

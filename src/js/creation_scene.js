@@ -91,7 +91,7 @@ var CreationScene = {
                     this.moveSkins(this.left);
                     this.skinIndex--;
                 }
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
                     this.moveCamera = true;
                     this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
                     this.state = this.submenus[1];

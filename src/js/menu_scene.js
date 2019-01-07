@@ -7,7 +7,7 @@ var MenuScene = {
         //Reproducir el main theme
         this.game.theme.loop = true; //loop
         this.game.theme.volume = 0.075; //volumen
-        //this.game.theme.play();
+        this.game.theme.play();
 
         var logo = this.game.add.sprite(
             this.game.world.centerX, this.game.world.centerY - 90, 'logo');

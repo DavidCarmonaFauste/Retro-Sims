@@ -36,7 +36,8 @@ var PreloaderScene = {
     this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
     //this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
-    this.game.load.image('censor', 'images/censorship.png'); //Imagen usada para censurar
+    this.game.load.image('censor', 'images/censorship.png'); //Imagen usada para censurar    
+    this.game.load.image('grave', 'images/GameOverScreen.png'); 
 
 
     // Imágenes del HUD
@@ -60,8 +61,9 @@ var PreloaderScene = {
     this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
     this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
     this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
-    this.game.load.image('resetButton', 'images/hud/resetButton.png'); 
-    this.game.load.image('grave', 'images/GameOverScreen.png'); 
+    this.game.load.image('resetButton', 'images/hud/resetButton.png');
+    this.game.load.image('musicButton', 'images//hud/musicButton.png');  
+    this.game.load.image('musicOffButton', 'images//hud/musicOffButton.png');  
 
 
     // Tilemaps y tilesets
@@ -91,6 +93,8 @@ var PreloaderScene = {
     this.game.load.audio('pay', 'audio/pay.wav');
     this.game.load.audio('eating', 'audio/eating.wav');
     this.game.load.audio('sleeping', 'audio/sleeping.wav');
+    this.game.load.audio('death', 'audio/death.wav');
+    this.game.load.audio('playSceneMusic', 'audio/Silly Fun.mp3');
   },
 
   create: function () {
@@ -98,6 +102,7 @@ var PreloaderScene = {
     this.game.tap = this.game.add.audio('tap');
     this.game.select = this.game.add.audio('select');
     this.game.theme = this.game.add.audio('mainTheme');
+    this.game.playSceneMusic = this.game.add.audio('playSceneMusic');
 
     //Hace que el navegador ignore algunos inputs (flechas y espacio) para evitar mover la ventana jugando
     this.game.input.keyboard.addKeyCapture([
