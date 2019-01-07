@@ -27,6 +27,13 @@ function Neighbour(game, player, sprite, x, y, name) {
 
   this.body.collideWorldBounds = true; //Establece la colisión con los límites del juego
 
+  //Animaciones
+  this.animations.add('down', [0, 1, 2, 3], 6, true);
+  this.animations.add('up', [4, 5, 6, 7], 6, true);
+  this.animations.add('idle', [0], 6, false);
+
+  this.animations.play('down');
+
   game.add.existing(this); //añadir el sprite al game
 }
 
@@ -40,12 +47,22 @@ Neighbour.prototype.update = function () {
     this.handleState(); //Comprueba el state del vecino y actúa en consecuencia
 
     if (this.y <= this.game.initialY) //Los vecinos no pueden pisar mi césped!
+    {
       this.movingDirection[1] = 1;
-
+      this.animations.play('down');
+    }
     if (this.x > this.game.world.width - 100) { //Sale del juego
       console.log(this.name + ': BYE');
       this.kill();
     }
+
+    if (this.actualState != 'talking') {
+      if (this.movingDirection[1] > -1 && this.animations.currentAnim.name != 'down')
+        this.animations.play('down');
+      else if (this.movingDirection[1] < 0 && this.animations.currentAnim.name != 'up')
+        this.animations.play('up');
+    } else
+      this.animations.play('idle');
   }
 };
 
@@ -60,8 +77,9 @@ Neighbour.prototype.handleState = function () {
     if (this.checkPlayerOverlap()) { //Si le habla el jugador
       //console.log(neig.name + ': OUCH');
 
-      if (this.actualState == 'walkingToCenter' || this.actualState == 'wandering')
+      if (this.actualState == 'walkingToCenter' || this.actualState == 'wandering') {
         this.talk();
+      }
     } else if (this.actualState != 'wandering' && this.actualState != 'walkingToCenter') {
       this.startWandering();
     }
@@ -216,12 +234,14 @@ function randomDir() {
   switch (rnd) {
     case 1: //UP
       direction[1] = -1;
+      //this.animations.play('up');
       break;
     case 2: //RIGHT
       direction[0] = 1;
       break;
     case 3: //DOWN
       direction[1] = 1;
+      //this.animations.play('down');
       break;
     case 4: //LEFT
       direction[0] = -1;

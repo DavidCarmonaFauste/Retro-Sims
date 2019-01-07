@@ -21,6 +21,7 @@ function Map(game) {
     this.fridge = 73; //FRIGORÍFICO
     this.mailbox = 53; //BUZÓN
     this.bed = 26; //CAMA
+    this.bedFront = 25;
 
     this.wallsAreActive = true; //true si las paredes del mapa están visibles
     //Límites de la casa
@@ -51,8 +52,8 @@ function Map(game) {
 
 
 //Comprueba si las coordenadas recibidas están dentro de los límites del mapa
-Map.prototype.isInside = function(_x, _y){
-    return(_x >= this.x && _x <= this.w &&
+Map.prototype.isInside = function (_x, _y) {
+    return (_x >= this.x && _x <= this.w &&
         _y >= this.y && _y <= this.h);
 }
 
@@ -66,27 +67,38 @@ Map.prototype.createTopLayers = function () {
 
 //Devuelve el furni que se encuentra en la posición (X, Y)
 Map.prototype.getTileType = function (player) {
-    this.tile = this.map.getTile(this.objectsLayer.getTileX(player.x + (32 * player.getDir().x)), this.objectsLayer.getTileY(player.y + (32 * player.getDir().y)), this.objectsLayer);
-    
+    var interactOffsetX = 32;
+    var interactOffsetY = interactOffsetX;
+
+    if (player.getDir().y > 0)
+        interactOffsetY = interactOffsetY * 2; //Para las interacciones con tiles debajo del jugador es necesario aumentar el offset en la Y
+
+    this.tile = this.map.getTile(this.objectsLayer.getTileX(player.x + (interactOffsetX * player.getDir().x)), this.objectsLayer.getTileY(player.y + (interactOffsetY * player.getDir().y)), this.objectsLayer);
+
     if (this.tile != null) {
-        console.log(player.x + ", " + player.y + ": " + this.tile.index);
+        //console.log(player.x + ", " + player.y + ": " + this.tile.index);
 
         var type = "";
 
         switch (this.tile.index) {
             case this.sink:
-                type = "sink";
+                if (player.getDir().y < 0)
+                    type = "sink";
                 break;
             case this.toilet:
-                type = "toilet";
+                if (player.getDir().y < 0)
+                    type = "toilet";
                 break;
             case this.fridge:
-                type = "fridge";
+                if (player.getDir().y < 0)
+                    type = "fridge";
                 break;
             case this.mailbox:
-                type = "mailbox";
+                if (player.getDir().y <= 0)
+                    type = "mailbox";
                 break;
             case this.bed:
+            case this.bedFront:
                 type = "bed";
                 break;
             default:

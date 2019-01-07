@@ -1,6 +1,6 @@
 var Neighbour = require('./Neighbour');
 
-function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, money, job) {
+function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma) {
   this.currentState = 'active'; //estado actual del jugador
   this.stateMachine = [this.currentState]; //máquina de estados
   //ESTADOS POSIBLES:
@@ -23,7 +23,7 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   //cantidad que se reduce a las barras de necesidad
   this.fatigueReductionAmount = 10;
   this.hungerReductionAmount = 25;
-  this.peeReductionAmount = 50;
+  this.peeReductionAmount = 35;
   //Velocidad a la que se regeneran las necesidades
   this.needIncreaseAmount = 100;
   this.needs = {
@@ -47,7 +47,10 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.exchangeTimer = this.game.time.create(true); //Timer para hacer que desaparezca el texto informativo de los ingresos/gastos
   this.foodPrice = 10;
   //Trabajo
-  this.job = {name: 'Unemployed', wage: 0};
+  this.job = {
+    name: 'Unemployed',
+    wage: 0
+  };
   //Nombre
   this.name = name;
   //Activo
@@ -57,7 +60,10 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   //Dirección de movimiento
   this.dir = new Phaser.Point(0, 1)
   //Animaciones
-  this.animations.add('idle', [0, 1], 1, true);
+  this.animations.add('down', [0, 1, 2, 3], 6, true);
+  this.animations.add('up', [4, 5, 6, 7], 6, true);
+  this.animations.add('idleDown', [0], 6, false);
+  this.animations.add('idleUp', [4], 6, false);
 
   this.controls = {
     right: game.input.keyboard.addKey(Phaser.Keyboard.RIGHT),
@@ -103,11 +109,11 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   }, this);
 
   this.sleepingSound = this.game.add.audio('sleeping'); //DORMIR
-  this.sleepingSound.onStop.add(function () {   //Cuando termina la canción 
+  this.sleepingSound.onStop.add(function () { //Cuando termina la canción 
     this.needs.fatigue = this.maxNeed;
     this.currentState = 'active';
     this.stateMachine.pop();
-    this.game.camera.resetFX(); 
+    this.game.camera.resetFX();
   }, this);
 }
 
@@ -134,7 +140,6 @@ Player.prototype.update = function () {
     case 'eating': //EATING
       this.eatingState();
       break;
-
   }
 
   if (this.exchangeTimer.ms >= 750) {
@@ -143,18 +148,19 @@ Player.prototype.update = function () {
     this.exchangeText.visible = false;
   }
 
-  if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
+  
+  //console.log(this.body.velocity.x + ' ' + this.body.velocity.y +'\n'+this.dir.x +' '+this.dir.y);
+
+
+  /*if (this.body.velocity.x == 0 && this.body.velocity.y == 0 && this.dir.y < 0){
+    this.animations.play('idleUp');
+  }
+  else if (this.body.velocity.x == 0 && this.body.velocity.y == 0 && this.dir.y >= 0)
+    this.animations.play('idleDown');*/
+
+  /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) { //SOLO PARA DEBUG
      this.needs.fatigue=0;
-   }
-   if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
-     this.needs.fatigue++;
-     console.log(this.needs.fatigue);
-   }/*
-   if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
-     this.money-=100;
-     
-     console.log(this.money);
-   }*/
+  }*/
 }
 
 Player.prototype.peeingState = function () {
@@ -201,28 +207,43 @@ Player.prototype.move = function () {
 
 
   if (this.controls.up.isDown) { //UP
-    //this.animations.play('up');
+    this.animations.play('up');
     this.body.velocity.y -= this.speed;
     this.dir.x = 0;
     this.dir.y = -1;
   }
   if (this.controls.down.isDown) { //DOWN
-    //this.animations.play('down');
+    this.animations.play('down');
     this.body.velocity.y += this.speed;
     this.dir.x = 0;
     this.dir.y = 1;
   }
   if (this.controls.left.isDown) { //LEFT
-    //this.animations.play('left');
+    if (this.dir.y >= 0)
+      this.animations.play('down');
+    else
+      this.animations.play('up');
+
     this.body.velocity.x -= this.speed;
     this.dir.x = -1;
     this.dir.y = 0;
   }
   if (this.controls.right.isDown) { //RIGHT
-    //this.animations.play('right');
+    if (this.dir.y >= 0)
+      this.animations.play('down');
+    else
+      this.animations.play('up');
+
     this.body.velocity.x += this.speed;
     this.dir.x = 1;
     this.dir.y = 0;
+  }
+  
+  if(this.body.velocity.x == 0 && this.body.velocity.y == 0){
+    if (this.dir.y >= 0)
+      this.animations.play('idleDown');
+    else
+      this.animations.play('idleUp');
   }
 
   //console.log(this.dir.x + " " + this.dir.y);

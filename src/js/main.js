@@ -28,16 +28,19 @@ var PreloaderScene = {
     this.game.load.image('devLogo', 'images/AE.png'); //Logotipo del equipo de des.
     this.game.load.image('background', 'images/background.png');
     this.game.load.image('paredTop', 'images/Pared0_Top.png');
-    
+
+    //Sims
     this.game.numSkins = 11;
     for (var i = 1; i < this.game.numSkins; i++) //Los sprites de los sims
+      this.game.load.spritesheet('sim' + i, 'images/sims/Sim' + i + '.png', 224, 256, 8);
 
-      this.game.load.image('sim' + i, 'images/sims/Sim' + i + '.png');
-    this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
+    this.game.load.spritesheet('sim1anim', 'images/sims/Sim1.png', 224, 256, 8);
+    //this.game.load.spritesheet('sim1up', 'images/sims/Sim1Up.png');
+
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
     //this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
     this.game.load.image('censor', 'images/censorship.png'); //Imagen usada para censurar    
-    this.game.load.image('grave', 'images/GameOverScreen.png'); 
+    this.game.load.image('grave', 'images/GameOverScreen.png');
 
 
     // Imágenes del HUD
@@ -53,20 +56,20 @@ var PreloaderScene = {
     this.game.load.image('sleepIcon', 'images/hud/sleepIcon.png'); //icono necesidad: SLEEP
     this.game.load.image('moneyIcon', 'images/hud/coinIcon.png'); //icono del dinero
     this.game.load.image('greenBox', 'images/hud/greenBox.png'); //cuadrado verde usado para las barras de necesidad
-    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png'); 
-    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png'); 
-    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png'); 
-    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png'); 
-    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png'); 
-    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
-    this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
-    this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
+    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png');
+    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png');
+    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png');
+    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png');
+    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png');
+    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png');
+    this.game.load.image('nextButton', 'images/hud/nextButton.png');
+    this.game.load.image('prevButton', 'images/hud/prevButton.png');
     this.game.load.image('resetButton', 'images/hud/resetButton.png');
-    this.game.load.image('musicButton', 'images//hud/musicButton.png');  
-    this.game.load.image('musicOffButton', 'images//hud/musicOffButton.png');  
-    this.game.load.image('buildButton', 'images//hud/buildButton.png'); 
-    this.game.load.image('jobsButton', 'images//hud/jobsButton.png'); 
-    this.game.load.image('basicButton', 'images//hud/basicButton.png'); 
+    this.game.load.image('musicButton', 'images//hud/musicButton.png');
+    this.game.load.image('musicOffButton', 'images//hud/musicOffButton.png');
+    this.game.load.image('buildButton', 'images//hud/buildButton.png');
+    this.game.load.image('jobsButton', 'images//hud/jobsButton.png');
+    this.game.load.image('basicButton', 'images//hud/basicButton.png');
 
 
     // Tilemaps y tilesets
@@ -112,10 +115,10 @@ var PreloaderScene = {
 
     //Hace que el navegador ignore algunos inputs (flechas y espacio) para evitar mover la ventana jugando
     this.game.input.keyboard.addKeyCapture([
-      Phaser.Keyboard.DOWN, 
-      Phaser.Keyboard.UP, 
-      Phaser.Keyboard.RIGHT, 
-      Phaser.Keyboard.LEFT, 
+      Phaser.Keyboard.DOWN,
+      Phaser.Keyboard.UP,
+      Phaser.Keyboard.RIGHT,
+      Phaser.Keyboard.LEFT,
       Phaser.Keyboard.SPACEBAR
     ]);
 

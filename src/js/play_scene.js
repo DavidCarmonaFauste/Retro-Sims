@@ -44,7 +44,7 @@ var PlayScene = {
     this.billPaymentRate = 5; //Las facturas se cobran aca billPaymentRate días
     this.game.initialX = this.game.world.centerX + 900, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
-    this.neighbourSpawnRate = 50; //en minutos del juego
+    this.neighbourSpawnRate = 5000; //tiempo entre spawn de vecinos en milisegundos
     this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
     var NUM_NEIGHBOURS = 10; //número total de vecinos
     this.maleNames = [ //Array de nombres masculinos
@@ -88,6 +88,9 @@ var PlayScene = {
     };
     //loop de tiempo
     this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
+
+    //Loop de spawneo de vecinos
+    this.game.time.events.loop(this.neighbourSpawnRate, this.spawnSim, this);
 
     //Trabajos posibles -> nombre, salario, habilidad necesaria, puntos de habilidad necesarios
     this.jobs = {
@@ -189,11 +192,11 @@ var PlayScene = {
     } else
       this.map.setWalls(true);
 
-    //Spawn de vecinos
-    if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
+    //Spawn de vecinos (AHORA SE ENCARGA UN LOOP)
+    /*if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
       this.spawningNeighbour = true;
       this.spawnSim();
-    }
+    }*/
 
     //Ir al trabajo
     if (this.timeCounter.hour == 8 && this.player.job.name != 'Unemployed' && !this.atWork) {
@@ -207,20 +210,20 @@ var PlayScene = {
       this.billsArePaid = false; //resetea bills are paid el día antes de tener que pagar
 
     //Activar el modo edición
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
+    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
       this.editMode = true;
 
     }
 
     if (this.editMode && this.game.input.activePointer.leftButton.isDown) {
-      /*this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
+      this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
       console.log(this.game.input.mousePointer.x, this.game.input.mousePointer.y);
       this.furni.fixedToCamera = true;
       this.furni.scale.setTo(0.25, 0.25);
       this.furni.anchor.setTo(0.5, 0.5);
-      this.player.money -= 75;*/
+      this.player.money -= 75;
 
-    }
+    }*/
 
     this.updateNeeds();
 
@@ -448,7 +451,7 @@ var PlayScene = {
 
     //BUILD MODE BUTTON
     var buildButton = this.addButton('buildButton', '', window.innerWidth - this.timeCounter_offset + 60, 170, this.hud_buttonW, this.hud_buttonW, function () {
-      this.showJobs();
+      this.showMessage("The Build Mode feature\nis currently a\nWORK IN PROGRESS");
     });
     buildButton.fixedToCamera = true;
     buildButton.scale.setTo(0.075, 0.075);
@@ -677,6 +680,7 @@ var PlayScene = {
         break;
       case 'fit':
         if (this.player.stats.fitness >= job.skillPts) enoughSkill = true;
+        else  var skill = 'FITNESS';
         break;
       case 'cha':
         if (this.player.stats.charisma >= job.skillPts) enoughSkill = true;
@@ -689,6 +693,11 @@ var PlayScene = {
       this.jobSound.play();
 
       this.showMessage('You were chosen to\nstart working as a\n' + this.player.job.name + "!");
+    }
+    else
+    {
+      this.hideJobs();
+      this.showMessage("You must improve your\n" + skill + "\n\n(Click in YOU to\ncheck your skills)");
     }
   },
 
@@ -941,6 +950,7 @@ var PlayScene = {
     if (this.game.playSceneMusic.isPlaying)
       this.game.playSceneMusic.stop();
     var deathSound = this.game.add.audio('death');
+    deathSound.volume = 0.5;
     deathSound.play();
 
 
