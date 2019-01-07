@@ -34,9 +34,14 @@ var PlayScene = {
     this.jobSound = this.game.add.audio('job');
     this.goToJobSound = this.game.add.audio('goToJob');
     this.moneySound = this.game.add.audio('money');
+    this.paySound = this.game.add.audio('pay'); //PAGAR
+    this.paySound.volume = 0.5;
 
     //Valores iniciales
     this.atWork = false;
+    this.billsArePaid = false;
+    this.billCost = 1000;
+    this.billPaymentRate = 5; //Las facturas se cobran aca billPaymentRate días
     this.game.initialX = this.game.world.centerX + 900, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
     this.neighbourSpawnRate = 50; //en minutos del juego
@@ -77,8 +82,8 @@ var PlayScene = {
     this.timeSpeed = 50; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
-      day: 0,
-      hour: 6,
+      day: 54,
+      hour: 22,
       minute: 0
     };
     //loop de tiempo
@@ -195,6 +200,12 @@ var PlayScene = {
       this.goToWork();
     }
 
+    //Pagar las facturas
+    if (this.timeCounter.day % this.billPaymentRate == 0 && !this.billsArePaid)
+      this.payBills();
+    if (this.timeCounter.day % (this.billPaymentRate - 1) == 0 && this.billsArePaid)
+      this.billsArePaid = false; //resetea bills are paid el día antes de tener que pagar
+
     //Activar el modo edición
     if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
       this.editMode = true;
@@ -260,18 +271,18 @@ var PlayScene = {
 
   //actualiza el contador de tiempo adecuadamente
   updateTimeCounter: function () {
-      if (this.timeCounter.minute < 59)
-        this.timeCounter.minute++;
+    if (this.timeCounter.minute < 59)
+      this.timeCounter.minute++;
+    else {
+      if (this.timeCounter.hour < 23)
+        this.timeCounter.hour++;
       else {
-        if (this.timeCounter.hour < 23)
-          this.timeCounter.hour++;
-        else {
-          this.timeCounter.hour = 0;
-          this.timeCounter.day++;
-        }
-        this.timeCounter.minute = 0;
+        this.timeCounter.hour = 0;
+        this.timeCounter.day++;
       }
-    
+      this.timeCounter.minute = 0;
+    }
+
   },
 
 
@@ -339,7 +350,10 @@ var PlayScene = {
   },
 
   payBills: function () {
-
+    this.paySound.play();
+    this.player.money -= this.billCost;
+    this.showMessage("You paid your bills.\nYou lost " + this.billCost + " EUROS");
+    this.billsArePaid = true;
   },
 
   goToWork: function () {
