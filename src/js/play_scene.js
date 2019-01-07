@@ -82,8 +82,8 @@ var PlayScene = {
     this.timeSpeed = 50; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
-      day: 54,
-      hour: 22,
+      day: 0,
+      hour: 12,
       minute: 0
     };
     //loop de tiempo
@@ -201,7 +201,7 @@ var PlayScene = {
     }
 
     //Pagar las facturas
-    if (this.timeCounter.day % this.billPaymentRate == 0 && !this.billsArePaid)
+    if (this.timeCounter.day != 0 && this.timeCounter.day % this.billPaymentRate == 0 && !this.billsArePaid)
       this.payBills();
     if (this.timeCounter.day % (this.billPaymentRate - 1) == 0 && this.billsArePaid)
       this.billsArePaid = false; //resetea bills are paid el día antes de tener que pagar
