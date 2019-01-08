@@ -39,12 +39,10 @@ var PlayScene = {
 
     //Valores iniciales
     this.atWork = false;
-    this.billsArePaid = false;
-    this.billCost = 1000;
-    this.billPaymentRate = 5; //Las facturas se cobran aca billPaymentRate días
     this.game.initialX = this.game.world.centerX + 900, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
-    this.neighbourSpawnRate = 5000; //tiempo entre spawn de vecinos en milisegundos
+    this.sleepingHours = 6;
+    this.neighbourSpawnRate = 15000; //tiempo entre spawn de vecinos en milisegundos
     this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
     var NUM_NEIGHBOURS = 10; //número total de vecinos
     this.maleNames = [ //Array de nombres masculinos
@@ -86,11 +84,23 @@ var PlayScene = {
       hour: 12,
       minute: 0
     };
+
     //loop de tiempo
     this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
 
     //Loop de spawneo de vecinos
     this.game.time.events.loop(this.neighbourSpawnRate, this.spawnSim, this);
+
+    //Pago de facturas
+    this.billsArePaid = false;
+    this.billCost = 1000;
+    this.billPaymentRate = 5 //días entre pago de facturas
+      *
+      (this.timeSpeed * 60 * 24); // (this.timeSpeed * 60 * 24) = 1 día de juego
+
+    //Timer de pago de facturas
+    this.billsTimer = this.game.time.create(true);
+    this.billsTimer.start();
 
     //Trabajos posibles -> nombre, salario, habilidad necesaria, puntos de habilidad necesarios
     this.jobs = {
@@ -177,6 +187,8 @@ var PlayScene = {
 
     this.createHUD();
 
+    this.spawnSim(); //aparece el primer vecino
+
 
     this.game.input.mouse.capture = true;
   },
@@ -204,10 +216,11 @@ var PlayScene = {
     }
 
     //Pagar las facturas
-    if (this.timeCounter.day != 0 && this.timeCounter.day % this.billPaymentRate == 0 && !this.billsArePaid)
+    if (this.billsTimer.ms >= this.billPaymentRate) {
+      this.billsTimer.stop();
+      this.billsTimer.start();
       this.payBills();
-    if (this.timeCounter.day % (this.billPaymentRate - 1) == 0 && this.billsArePaid)
-      this.billsArePaid = false; //resetea bills are paid el día antes de tener que pagar
+    }
 
     //Activar el modo edición
     /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
@@ -228,13 +241,24 @@ var PlayScene = {
     this.updateNeeds();
 
     if (this.player.currentState == 'sleeping') { //Si el jugador está durmiendo, avanza el tiempo 8 horas
-      if (this.timeCounter.hour + 8 > 23) //si pasa de día al dormir, actualiza timecounter.day
+      if (this.timeCounter.hour + this.sleepingHours > 23) //si pasa de día al dormir, actualiza timecounter.day
         this.timeCounter.day++;
 
-      this.timeCounter.hour = (this.timeCounter.hour + 8) % 23;
+      this.timeCounter.hour = (this.timeCounter.hour + this.sleepingHours) % 23;
       this.player.currentState = 'waking up'; //para que no siga aumentando en cada update
     } else if (this.player.currentState == 'active')
       this.timeCounterText.setText(this.getTimeText()); //Actualiza el texto del tiempo
+    else if (this.player.currentState == "checkingMails") {
+      var daysUntilBill = Math.trunc((this.billPaymentRate - this.billsTimer.ms) / (this.timeSpeed * 60 * 24));
+      var message = "Days until next bill\npayment:\n" +
+        daysUntilBill;
+
+      if (daysUntilBill == 0)
+        message += "\n\nYou will pay you bills soon!"
+
+      this.showMessage(message);
+      this.player.resetState();
+    }
 
     this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
 
@@ -353,6 +377,7 @@ var PlayScene = {
   },
 
   payBills: function () {
+    console.log('H??');
     this.paySound.play();
     this.player.money -= this.billCost;
     this.showMessage("You paid your bills.\nYou lost " + this.billCost + " EUROS");
@@ -680,10 +705,13 @@ var PlayScene = {
         break;
       case 'fit':
         if (this.player.stats.fitness >= job.skillPts) enoughSkill = true;
-        else  var skill = 'FITNESS';
+        else var skill = 'FITNESS';
         break;
       case 'cha':
         if (this.player.stats.charisma >= job.skillPts) enoughSkill = true;
+        break;
+      default:
+        enoughSkill = true;
         break;
     }
 
@@ -693,9 +721,7 @@ var PlayScene = {
       this.jobSound.play();
 
       this.showMessage('You were chosen to\nstart working as a\n' + this.player.job.name + "!");
-    }
-    else
-    {
+    } else {
       this.hideJobs();
       this.showMessage("You must improve your\n" + skill + "\n\n(Click in YOU to\ncheck your skills)");
     }

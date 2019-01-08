@@ -103,6 +103,9 @@ var PreloaderScene = {
     this.game.load.audio('job', 'audio/job.wav');
     this.game.load.audio('goToJob', 'audio/goToJob.wav');
     this.game.load.audio('money', 'audio/money.wav');
+    this.game.load.audio('sink', 'audio/sink.wav');
+    this.game.load.audio('chat1', 'audio/chat1.wav');
+    this.game.load.audio('chat2', 'audio/chat2.wav');
     this.game.load.audio('playSceneMusic', 'audio/Silly Fun.mp3');
   },
 

@@ -19,6 +19,13 @@ function Neighbour(game, player, sprite, x, y, name) {
   this.wanderingTime = 5000;
   this.movingDirection = [1, 0];
 
+  //Sonido de voz del sim (aleatorio entre dos opciones, una más grave y otra más aguda)
+  if (Math.random() > 0.5)
+    this.chatSound = this.game.add.audio('chat1');
+  else
+    this.chatSound = this.game.add.audio('chat2');
+
+  this.chatSound.volume = 0.45;
 
   //this.states = ['walkingToCenter', 'talking', 'wandering'];
   this.actualState = 'walkingToCenter';
@@ -172,7 +179,10 @@ Neighbour.prototype.talk = function () {
 
 
 //Muestra una burbuja de diálogo aleatoria y actualiza la amistad dependiendo de la burbuja generada
+// y reproduce el sonido de hablar
 Neighbour.prototype.generateDialogBubble = function () {
+  this.chatSound.play();
+
   var min = 0;
   var max = 3;
   var rndValue = Math.floor(Math.random() * (max - min)) + min;

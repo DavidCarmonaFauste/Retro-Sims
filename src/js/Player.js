@@ -102,6 +102,9 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma) 
   this.eatingSound = this.game.add.audio('eating'); //COMER
   this.eatingSound.volume = 0.5;
 
+  this.sinkSound = this.game.add.audio('sink'); //LAVABO
+  //this.sinkSound.volume = 0.5;
+
   this.paySound = this.game.add.audio('pay'); //PAGAR
   this.paySound.volume = 0.5;
   this.paySound.onStop.add(function () {
@@ -201,6 +204,10 @@ Player.prototype.resetPosition = function () {
   this.y = this.game.initialY;
 }
 
+Player.prototype.resetState = function () {
+  this.currentState = 'active';
+}
+
 Player.prototype.move = function () {
   this.body.velocity.x = 0;
   this.body.velocity.y = 0;
@@ -250,7 +257,7 @@ Player.prototype.move = function () {
 }
 
 Player.prototype.interactWithSink = function () {
-  console.log("Washing my hands");
+  this.sinkSound.play();
 }
 
 Player.prototype.interactWithToilet = function () {
@@ -277,7 +284,7 @@ Player.prototype.interactWithFridge = function () {
 }
 
 Player.prototype.interactWithMailbox = function () {
-  console.log("Checking my mails");
+  this.currentState = "checkingMails";
 }
 
 Player.prototype.interactWithBed = function () {
@@ -306,15 +313,18 @@ Player.prototype.interact = function (map) {
       this.interactWithSink();
       break;
     case "toilet":
+    if(this.needs.pee < this.maxNeed - this.peeReductionAmount * 10) //Para no realizar la interacción si la necesidad está casi al máximo 
       this.interactWithToilet();
       break;
     case "fridge":
+    if(this.needs.hunger < this.maxNeed - this.hungerReductionAmount * 10) //Para no realizar la interacción si la necesidad está casi al máximo 
       this.interactWithFridge();
       break;
     case "mailbox":
       this.interactWithMailbox();
       break;
     case "bed":
+    if(this.needs.fatigue < this.maxNeed - this.fatigueReductionAmount * 50) //Para no realizar la interacción si la necesidad está casi al máximo 
       this.interactWithBed();
       break;
     default:
