@@ -13,9 +13,9 @@ Entity.prototype.constructor = Entity;
 
 module.exports = Entity;
 },{}],2:[function(require,module,exports){
-function Map(game) {
-    this.nNeighbours = 10; //Num. de vecinos en el mapa
-    this.neighbours = []; //Array de vecinos
+function Map(game, player) {
+    this.game = game;
+    this.player = null;
 
     //tilemap
     this.map = game.add.tilemap('map'); //, 64, 64);
@@ -32,43 +32,150 @@ function Map(game) {
 
     //tile indexes(clase MAP)
     this.sink = 51; //LAVABO
+    this.sinkTop = 27;
     this.toilet = 52; //RETRETE
+    this.toiletTop = 28;
     this.fridge = 73; //FRIGORÍFICO
+    this.fridgeTop = 49;
+    this.fridgeSide = 74; //FRIGORÍFICO DE LADO 
+    this.fridgeSideTop = 50;
     this.mailbox = 53; //BUZÓN
     this.bed = 26; //CAMA
+    this.bedFront = 25;
+    this.worktop = 5; //ENCIMERA
+
+    this.selectedTileIndex = -1;
 
     this.wallsAreActive = true; //true si las paredes del mapa están visibles
     //Límites de la casa
-    this.x = 540;
-    this.y = 2202;
-    this.w = 2010;
-    this.h = 3210;
+    this.house_x = 540;
+    this.house_y = 2202;
+    this.house_w = 2010;
+    this.house_h = 3210;
     //game.physics.enable(this.doorTrigger, Phaser.Physics.ARCADE);
+
+
+    this.createMarker();
+
+    this.buildSound = this.game.add.audio('build');
+    this.errorSound = this.game.add.audio('error');
 }
 
 //MÉTODOS
+Map.prototype.update = function () {
+    var currentTile = this.map.getTile(this.objectsLayer.getTileX(this.game.input.activePointer.worldX),
+        this.objectsLayer.getTileY(this.game.input.activePointer.worldY),
+        this.objectsLayer, true);
+    var currentWallTile = this.map.getTile(this.groundWallLayer.getTileX(this.game.input.activePointer.worldX),
+        this.groundWallLayer.getTileY(this.game.input.activePointer.worldY),
+        this.groundWallLayer, true);
 
-//Inicializa el mapa creando el array de vecinos y la matriz de muebles
-/*Map.prototype.initialize = function(){
-    //Inicializa el array de vecinos aleatorios
-    for(var i = 0; i < this.nNeighbours; i++){
 
+    this.marker.x = roundFloorToInt(this.game.input.activePointer.worldX, 64);
+    this.marker.y = roundFloorToInt(this.game.input.activePointer.worldY, 64);
+
+    if (currentWallTile.index == -1 &&
+         this.isInside(this.marker.x, this.marker.y) &&
+     this.game.input.mousePointer.isDown &&
+      this.selectedTileIndex != -1) {
+        this.placeTile(currentTile);
     }
+}
 
-    //Inicializa la matriz de muebles
-    for(var i = 0; i < this.nRows; i++){
-        house[i] = [];
-        for(var j = 0; j < this.nNeighbours; j++){
-            //house[i][j] = ;
+Map.prototype.placeTile = function (tile) {
+    var canBePlaced = tile.index == -1;
+
+    if (canBePlaced) {
+        var cost = 0;
+        switch (this.selectedTileIndex) {
+            case this.bed:
+                var leftTile = this.map.getTile(this.objectsLayer.getTileX(this.game.input.activePointer.worldX - 64),
+                    this.objectsLayer.getTileY(this.game.input.activePointer.worldY),
+                    this.objectsLayer, true);
+                var canBePlaced = leftTile.index == -1;
+
+                if (canBePlaced) {
+                    leftTile.index = this.bedFront;
+                    leftTile.setCollision(true, true, true, true);
+                    cost = this.game.buildCost.bed;
+                }
+                break;
+
+            case this.toilet:
+                var upTile = this.map.getTile(this.objectsLayer.getTileX(this.game.input.activePointer.worldX),
+                    this.objectsLayer.getTileY(this.game.input.activePointer.worldY - 64),
+                    this.objectsLayer, true);
+                var canBePlaced = upTile.index == -1;
+
+                if (canBePlaced) {
+                    upTile.index = this.toiletTop;
+                    upTile.setCollision(true, true, true, true);
+                    cost = this.game.buildCost.toilet;
+                }
+                break;
+
+            case this.sink:
+                var upTile = this.map.getTile(this.objectsLayer.getTileX(this.game.input.activePointer.worldX),
+                    this.objectsLayer.getTileY(this.game.input.activePointer.worldY - 64),
+                    this.objectsLayer, true);
+                var canBePlaced = upTile.index == -1;
+
+                if (canBePlaced) {
+                    upTile.index = this.sinkTop;
+                    upTile.setCollision(true, true, true, true);
+                    cost = this.game.buildCost.sink;
+                }
+                break;
+
+            case this.fridge:
+                var upTile = this.map.getTile(this.objectsLayer.getTileX(this.game.input.activePointer.worldX),
+                    this.objectsLayer.getTileY(this.game.input.activePointer.worldY - 64),
+                    this.objectsLayer, true);
+                var canBePlaced = upTile.index == -1;
+
+                if (canBePlaced) {
+                    upTile.index = this.fridgeTop;
+                    upTile.setCollision(true, true, true, true);
+                    cost = this.game.buildCost.fridge;
+                }
+                break;
+
+            case this.fridgeSide:
+                var upTile = this.map.getTile(this.objectsLayer.getTileX(this.game.input.activePointer.worldX),
+                    this.objectsLayer.getTileY(this.game.input.activePointer.worldY - 64),
+                    this.objectsLayer, true);
+                var canBePlaced = upTile.index == -1;
+
+                if (canBePlaced) {
+                    upTile.index = this.fridgeSideTop;
+                    upTile.setCollision(true, true, true, true);
+                    cost = this.game.buildCost.fridge;
+                }
+                break;
+
+            case this.worktop:
+                cost = this.game.buildCost.worktop;
+                break;
+        }
+
+        if (canBePlaced) {
+            this.buildSound.play();
+            tile.index = this.selectedTileIndex;
+            tile.setCollision(true, true, true, true);
+            this.player.money -= cost;
+            this.player.showExchange(-cost);
+
+            this.selectedTileIndex = -1;
+            this.quitBuilding();
+            this.createMarker();
         }
     }
-}*/
-
+}
 
 //Comprueba si las coordenadas recibidas están dentro de los límites del mapa
-Map.prototype.isInside = function(_x, _y){
-    return(_x >= this.x && _x <= this.w &&
-        _y >= this.y && _y <= this.h);
+Map.prototype.isInside = function (_x, _y) {
+    return (_x >= this.house_x && _x <= this.house_w &&
+        _y >= this.house_y && _y <= this.house_h);
 }
 
 
@@ -79,29 +186,46 @@ Map.prototype.createTopLayers = function () {
 }
 
 
-//Devuelve el furni que se encuentra en la posición (X, Y)
+//Devuelve el tipo de mueble que se encuentra en la posición (X, Y)
 Map.prototype.getTileType = function (player) {
-    this.tile = this.map.getTile(this.objectsLayer.getTileX(player.x + (32 * player.getDir().x)), this.objectsLayer.getTileY(player.y + (32 * player.getDir().y)), this.objectsLayer);
-    
+    var interactOffsetX = 32;
+    var interactOffsetY = interactOffsetX;
+
+    if (player.getDir().y > 0)
+        interactOffsetY = interactOffsetY * 2; //Para las interacciones con tiles debajo del jugador es necesario aumentar el offset en la Y
+
+    this.tile = this.map.getTile(this.objectsLayer.getTileX(player.x + (interactOffsetX * player.getDir().x)),
+        this.objectsLayer.getTileY(player.y + (interactOffsetY * player.getDir().y)),
+        this.objectsLayer);
+
     if (this.tile != null) {
-        console.log(player.x + ", " + player.y + ": " + this.tile.index);
 
         var type = "";
 
         switch (this.tile.index) {
             case this.sink:
-                type = "sink";
+                if (player.getDir().y < 0)
+                    type = "sink";
                 break;
             case this.toilet:
-                type = "toilet";
+                if (player.getDir().y < 0)
+                    type = "toilet";
                 break;
             case this.fridge:
-                type = "fridge";
+                if (player.getDir().y < 0)
+                    type = "fridge";
+                break;
+            case this.fridgeSide:
+            case this.fridgeSideTop:
+                if (player.getDir().x < 0)
+                    type = "fridge";
                 break;
             case this.mailbox:
-                type = "mailbox";
+                if (player.getDir().y <= 0)
+                    type = "mailbox";
                 break;
             case this.bed:
+            case this.bedFront:
                 type = "bed";
                 break;
             default:
@@ -112,6 +236,59 @@ Map.prototype.getTileType = function (player) {
         return type;
     }
 };
+
+
+Map.prototype.quitBuilding = function () {
+    this.marker.kill();
+    this.selectedTileIndex = -1;
+}
+
+
+Map.prototype.createMarker = function () {
+    this.marker = this.game.add.image(
+
+        0, 0, 'hudBox'
+    );
+    this.marker.width = 64;
+    this.marker.height = 64;
+}
+
+
+Map.prototype.tileSelected = function (tileName) {
+
+    switch (tileName) {
+        case 'bed':
+            this.selectedTileIndex = this.bed;
+
+            break;
+        case 'fridgeFront':
+            this.selectedTileIndex = this.fridge;
+
+            break;
+        case 'fridgeSide':
+            this.selectedTileIndex = this.fridgeSide;
+
+            break;
+        case 'sink':
+            this.selectedTileIndex = this.sink;
+
+            break;
+        case 'toilet':
+            this.selectedTileIndex = this.toilet;
+
+            break;
+        case 'worktop':
+            this.selectedTileIndex = this.worktop;
+
+            break;
+
+    }
+
+    this.marker.loadTexture(tileName);
+    this.marker.width = 64;
+    this.marker.height = 64;
+
+}
 
 
 //Activa/Desactiva las paredes
@@ -137,17 +314,17 @@ Map.prototype.setWalls = function (active) {
     //this.wallsAreActive = !this.wallsAreActive;
 };
 
-
-//Crea el vecino neighbours[neighbourIndex] en la zona de spawn
-Map.prototype.spawnNeighbour = function (neighbourIndex) {
-
+Map.prototype.editMode = function () {
+    this.marker.revive();
 };
 
+//FUNCIONES
+function roundFloorToInt(n, multiple) {
+    if (multiple == 0)
+        return n;
 
-//Devuelve al vecino neighbours[neighbourIndex] al pool de vecinos
-Map.prototype.killNeighbour = function (neighbourIndex) {
-
-};
+    return Math.floor(n / multiple) * multiple;
+}
 
 module.exports = Map;
 },{}],3:[function(require,module,exports){
@@ -172,6 +349,13 @@ function Neighbour(game, player, sprite, x, y, name) {
   this.wanderingTime = 5000;
   this.movingDirection = [1, 0];
 
+  //Sonido de voz del sim (aleatorio entre dos opciones, una más grave y otra más aguda)
+  if (Math.random() > 0.5)
+    this.chatSound = this.game.add.audio('chat1');
+  else
+    this.chatSound = this.game.add.audio('chat2');
+
+  this.chatSound.volume = 0.45;
 
   //this.states = ['walkingToCenter', 'talking', 'wandering'];
   this.actualState = 'walkingToCenter';
@@ -179,6 +363,13 @@ function Neighbour(game, player, sprite, x, y, name) {
   this.body.setSize(160, 144, 32, 112); //Establece el tamaño y la posición del collider (w,h,x,y)
 
   this.body.collideWorldBounds = true; //Establece la colisión con los límites del juego
+
+  //Animaciones
+  this.animations.add('down', [0, 1, 2, 3], 6, true);
+  this.animations.add('up', [4, 5, 6, 7], 6, true);
+  this.animations.add('idle', [0], 6, false);
+
+  this.animations.play('down');
 
   game.add.existing(this); //añadir el sprite al game
 }
@@ -193,12 +384,22 @@ Neighbour.prototype.update = function () {
     this.handleState(); //Comprueba el state del vecino y actúa en consecuencia
 
     if (this.y <= this.game.initialY) //Los vecinos no pueden pisar mi césped!
+    {
       this.movingDirection[1] = 1;
-
+      this.animations.play('down');
+    }
     if (this.x > this.game.world.width - 100) { //Sale del juego
       console.log(this.name + ': BYE');
       this.kill();
     }
+
+    if (this.actualState != 'talking') {
+      if (this.movingDirection[1] > -1 && this.animations.currentAnim.name != 'down')
+        this.animations.play('down');
+      else if (this.movingDirection[1] < 0 && this.animations.currentAnim.name != 'up')
+        this.animations.play('up');
+    } else
+      this.animations.play('idle');
   }
 };
 
@@ -213,8 +414,9 @@ Neighbour.prototype.handleState = function () {
     if (this.checkPlayerOverlap()) { //Si le habla el jugador
       //console.log(neig.name + ': OUCH');
 
-      if (this.actualState == 'walkingToCenter' || this.actualState == 'wandering')
+      if (this.actualState == 'walkingToCenter' || this.actualState == 'wandering') {
         this.talk();
+      }
     } else if (this.actualState != 'wandering' && this.actualState != 'walkingToCenter') {
       this.startWandering();
     }
@@ -307,7 +509,10 @@ Neighbour.prototype.talk = function () {
 
 
 //Muestra una burbuja de diálogo aleatoria y actualiza la amistad dependiendo de la burbuja generada
+// y reproduce el sonido de hablar
 Neighbour.prototype.generateDialogBubble = function () {
+  this.chatSound.play();
+
   var min = 0;
   var max = 3;
   var rndValue = Math.floor(Math.random() * (max - min)) + min;
@@ -369,12 +574,14 @@ function randomDir() {
   switch (rnd) {
     case 1: //UP
       direction[1] = -1;
+      //this.animations.play('up');
       break;
     case 2: //RIGHT
       direction[0] = 1;
       break;
     case 3: //DOWN
       direction[1] = 1;
+      //this.animations.play('down');
       break;
     case 4: //LEFT
       direction[0] = -1;
@@ -391,7 +598,7 @@ module.exports = Neighbour;
 },{"./Entity":1}],4:[function(require,module,exports){
 var Neighbour = require('./Neighbour');
 
-function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, money, job) {
+function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma) {
   this.currentState = 'active'; //estado actual del jugador
   this.stateMachine = [this.currentState]; //máquina de estados
   //ESTADOS POSIBLES:
@@ -414,7 +621,7 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   //cantidad que se reduce a las barras de necesidad
   this.fatigueReductionAmount = 10;
   this.hungerReductionAmount = 25;
-  this.peeReductionAmount = 50;
+  this.peeReductionAmount = 35;
   //Velocidad a la que se regeneran las necesidades
   this.needIncreaseAmount = 100;
   this.needs = {
@@ -438,7 +645,10 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.exchangeTimer = this.game.time.create(true); //Timer para hacer que desaparezca el texto informativo de los ingresos/gastos
   this.foodPrice = 10;
   //Trabajo
-  this.job = 'unemployed';
+  this.job = {
+    name: 'Unemployed',
+    wage: 0
+  };
   //Nombre
   this.name = name;
   //Activo
@@ -448,7 +658,10 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   //Dirección de movimiento
   this.dir = new Phaser.Point(0, 1)
   //Animaciones
-  this.animations.add('idle', [0, 1], 1, true);
+  this.animations.add('down', [0, 1, 2, 3], 6, true);
+  this.animations.add('up', [4, 5, 6, 7], 6, true);
+  this.animations.add('idleDown', [0], 6, false);
+  this.animations.add('idleUp', [4], 6, false);
 
   this.controls = {
     right: game.input.keyboard.addKey(Phaser.Keyboard.RIGHT),
@@ -487,6 +700,9 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   this.eatingSound = this.game.add.audio('eating'); //COMER
   this.eatingSound.volume = 0.5;
 
+  this.sinkSound = this.game.add.audio('sink'); //LAVABO
+  //this.sinkSound.volume = 0.5;
+
   this.paySound = this.game.add.audio('pay'); //PAGAR
   this.paySound.volume = 0.5;
   this.paySound.onStop.add(function () {
@@ -494,11 +710,11 @@ function Player(game, map, sprite, x, y, name, intelligence, fitness, charisma, 
   }, this);
 
   this.sleepingSound = this.game.add.audio('sleeping'); //DORMIR
-  this.sleepingSound.onStop.add(function () {   //Cuando termina la canción 
+  this.sleepingSound.onStop.add(function () { //Cuando termina la canción 
     this.needs.fatigue = this.maxNeed;
     this.currentState = 'active';
     this.stateMachine.pop();
-    this.game.camera.resetFX(); 
+    this.game.camera.resetFX();
   }, this);
 }
 
@@ -525,7 +741,6 @@ Player.prototype.update = function () {
     case 'eating': //EATING
       this.eatingState();
       break;
-
   }
 
   if (this.exchangeTimer.ms >= 750) {
@@ -534,18 +749,19 @@ Player.prototype.update = function () {
     this.exchangeText.visible = false;
   }
 
-  if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) {
+  
+  //console.log(this.body.velocity.x + ' ' + this.body.velocity.y +'\n'+this.dir.x +' '+this.dir.y);
+
+
+  /*if (this.body.velocity.x == 0 && this.body.velocity.y == 0 && this.dir.y < 0){
+    this.animations.play('idleUp');
+  }
+  else if (this.body.velocity.x == 0 && this.body.velocity.y == 0 && this.dir.y >= 0)
+    this.animations.play('idleDown');*/
+
+  /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.F)) { //SOLO PARA DEBUG
      this.needs.fatigue=0;
-   }
-   if (this.game.input.keyboard.isDown(Phaser.Keyboard.B)) {
-     this.needs.fatigue++;
-     console.log(this.needs.fatigue);
-   }/*
-   if (this.money > 0 && this.game.input.keyboard.isDown(Phaser.Keyboard.M)) {
-     this.money-=100;
-     
-     console.log(this.money);
-   }*/
+  }*/
 }
 
 Player.prototype.peeingState = function () {
@@ -581,8 +797,17 @@ Player.prototype.eatingState = function () {
   }
 }
 
-Player.prototype.sleepingState = function () {
+Player.prototype.resetPosition = function () {
+  this.x = this.game.initialX;
+  this.y = this.game.initialY;
+}
 
+Player.prototype.resetState = function () {
+  this.currentState = 'active';
+}
+
+Player.prototype.resetState = function () {
+  this.currentState = 'active';
 }
 
 Player.prototype.move = function () {
@@ -591,35 +816,50 @@ Player.prototype.move = function () {
 
 
   if (this.controls.up.isDown) { //UP
-    //this.animations.play('up');
+    this.animations.play('up');
     this.body.velocity.y -= this.speed;
     this.dir.x = 0;
     this.dir.y = -1;
   }
   if (this.controls.down.isDown) { //DOWN
-    //this.animations.play('down');
+    this.animations.play('down');
     this.body.velocity.y += this.speed;
     this.dir.x = 0;
     this.dir.y = 1;
   }
   if (this.controls.left.isDown) { //LEFT
-    //this.animations.play('left');
+    if (this.dir.y >= 0)
+      this.animations.play('down');
+    else
+      this.animations.play('up');
+
     this.body.velocity.x -= this.speed;
     this.dir.x = -1;
     this.dir.y = 0;
   }
   if (this.controls.right.isDown) { //RIGHT
-    //this.animations.play('right');
+    if (this.dir.y >= 0)
+      this.animations.play('down');
+    else
+      this.animations.play('up');
+
     this.body.velocity.x += this.speed;
     this.dir.x = 1;
     this.dir.y = 0;
+  }
+  
+  if(this.body.velocity.x == 0 && this.body.velocity.y == 0){
+    if (this.dir.y >= 0)
+      this.animations.play('idleDown');
+    else
+      this.animations.play('idleUp');
   }
 
   //console.log(this.dir.x + " " + this.dir.y);
 }
 
 Player.prototype.interactWithSink = function () {
-  console.log("Washing my hands");
+  this.sinkSound.play();
 }
 
 Player.prototype.interactWithToilet = function () {
@@ -646,7 +886,7 @@ Player.prototype.interactWithFridge = function () {
 }
 
 Player.prototype.interactWithMailbox = function () {
-  console.log("Checking my mails");
+  this.currentState = "checkingMails";
 }
 
 Player.prototype.interactWithBed = function () {
@@ -675,15 +915,18 @@ Player.prototype.interact = function (map) {
       this.interactWithSink();
       break;
     case "toilet":
+    if(this.needs.pee < this.maxNeed - this.peeReductionAmount * 10) //Para no realizar la interacción si la necesidad está casi al máximo 
       this.interactWithToilet();
       break;
     case "fridge":
+    if(this.needs.hunger < this.maxNeed - this.hungerReductionAmount * 10) //Para no realizar la interacción si la necesidad está casi al máximo 
       this.interactWithFridge();
       break;
     case "mailbox":
       this.interactWithMailbox();
       break;
     case "bed":
+    if(this.needs.fatigue < this.maxNeed - this.fatigueReductionAmount * 50) //Para no realizar la interacción si la necesidad está casi al máximo 
       this.interactWithBed();
       break;
     default:
@@ -705,19 +948,24 @@ Player.prototype.showExchange = function (value) {
 
   var x = 100 + 16 * this.money.toString().length;
   var y = 32;
-  this.exchangeText;
+  var exchangeText;
 
   if (value > 0) { //INGRESO
-    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
+    exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
   } else { //GASTO
-    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
+    exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
   }
-  this.exchangeText.align = "left";
-  this.exchangeText.fixedToCamera = true;
+  exchangeText.align = "left";
+  exchangeText.fixedToCamera = true;
 
-  this.exchangeTimer = this.game.time.create(true);
-  this.exchangeTimer.start();
 
+  var timer = this.game.time.create(false);
+  timer.loop(2000, function () {
+    exchangeText.visible = false;
+    
+    timer.stop();
+  }, this);
+  timer.start();
 
 
 }
@@ -793,10 +1041,9 @@ var CreationScene = {
 
     create: function () {
         this.skins = [];
-        this.game.numSkins = 11;
         this.skinIndex = 1;
         this.params = {};
-        this.submenus = ['name', 'skin', 'gender', 'create'];
+        this.submenus = ['skin', 'name', 'create'];
         this.right = 1;
         this.left = -1;
         this.index = 1;
@@ -804,7 +1051,7 @@ var CreationScene = {
         this.cameraSpeed = 20;
         this.positionMoved = 0;
         this.name = '';
-        this.state = this.submenus[1];
+        this.state = this.submenus[0];
         this.intelligence = 0;
         this.fitness = 0;
         this.charisma = 0;
@@ -835,14 +1082,14 @@ var CreationScene = {
 
         this.game.world.setBounds(0, 0, 2000, 2000);
 
-        var continueTxt = this.game.add.bitmapText(450, 550, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
+        var continueTxt = this.game.add.bitmapText(450, 550, 'arcadeGreenFont', 'Press \'ENTER\' to continue', 20);
         continueTxt.fixedToCamera = true;
         this.txt;
         this.txtName = this.game.add.bitmapText(400, 800, 'arcadeGreenFont', 'Choose your name', 40);
         this.txtName.anchor.setTo(0.5, 0.5);
         this.txtName.align = "center";
 
-        var nameTxt = this.game.add.bitmapText(400, 1000, 'arcadeWhiteFont', '>' + '<', 40);
+        var nameTxt = this.game.add.bitmapText(400, 1000, 'arcadeWhiteFont', '>' + name + '<', 40);
         nameTxt.anchor.setTo(0.5, 0.5);
         nameTxt.align = "center";
 
@@ -855,9 +1102,6 @@ var CreationScene = {
 
 
     //Métodos
-    moveCamera: function () {
-
-    },
 
     checkInput: function () { // game, this.skins, this.skinIndex, params) {
         if (this.moveCamera && this.positionMoved < 600) {
@@ -870,7 +1114,7 @@ var CreationScene = {
             }
         } else {
 
-            if (this.state == this.submenus[1]) {
+            if (this.state == this.submenus[0]) { //SKIN
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.skinIndex < 10) {
                     this.moveSkins(this.right);
                     this.skinIndex++;
@@ -878,12 +1122,12 @@ var CreationScene = {
                     this.moveSkins(this.left);
                     this.skinIndex--;
                 }
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR)) {
+                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
                     this.moveCamera = true;
                     this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
-                    this.state = this.submenus[0];
+                    this.state = this.submenus[1];
                 }
-            } else if (this.state == this.submenus[0]) {
+            } else if (this.state == this.submenus[1]) { //NAME
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.BACKSPACE)) {
                     name = name.substring(0, name.length - 1);
                     var sound = this.game.add.audio('keyboardBackspace');
@@ -892,9 +1136,17 @@ var CreationScene = {
                     //console.log(name);
                     this.game.input.keyboard.reset(true); //resetea el teclado para evitar borrar muchas de golpe
                     this.printText(name);
-                } else {
+                } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) && name.length < 20) {
+                    name += " ";
+                    var sound = this.game.add.audio('keyboardBackspace');
+                    sound.volume = 0.2;
+                    sound.play();
+                    this.game.input.keyboard.reset(true); //resetea el teclado para evitar borrar muchas de golpe
+                    this.printText(name);
+                }
+                else {
                     this.input.keyboard.onPressCallback = function (e) {
-                        if (!(this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) && name.length < 20) { //para eviar que se pongan espacios
+                        if (!(this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) && name.length < 20) { //para evitar que se pongan espacios
                             name += e;
                             if (Math.random() > 0.5)
                                 var sound = this.game.add.audio('keyboard1');
@@ -907,18 +1159,18 @@ var CreationScene = {
                     };
                 }
 
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) { //pasamos al submenú 3
+                if (name != "" && this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) { //pasamos al submenú 2:STATS
                     this.game.world.removeAll();
                     var nameTxt = this.game.add.bitmapText(400, 1000, 'arcadeWhiteFont', '>' + name + '<', 40);
                     this.centerSprite(nameTxt);
-                    this.txt = this.game.add.bitmapText(450, 550, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
+                    this.txt = this.game.add.bitmapText(450, 550, 'arcadeGreenFont', 'Press \'ENTER\' to continue', 20);
                     this.txt.fixedToCamera = true;
                     this.moveCamera = true;
                     this.game.input.keyboard.reset(true); //resetea el teclado para moverse de uno en uno
                     this.state = this.submenus[2];
                     this.game.input.keyboard.onPressCallback = function () {}; //quita el callback
                 }
-            } else if (this.state == this.submenus[2]) {
+            } else if (this.state == this.submenus[2]) { //STATS
                 //subir o bajar entre stats
                 if (this.game.input.keyboard.isDown(Phaser.Keyboard.UP) && this.selectedStat != 'intelligence') {
                     if (this.selectedStat == 'fitness') this.selectedStat = 'charisma';
@@ -929,14 +1181,14 @@ var CreationScene = {
                 } else
                     //sumar o restar uno a las stats
                     if (this.game.input.keyboard.isDown(Phaser.Keyboard.RIGHT) && this.remainingPoints > 0) {
-                        this.add1();
+                        this.addStatPoint();
                     } else if (this.game.input.keyboard.isDown(Phaser.Keyboard.LEFT)) {
-                    this.sub1();
+                    this.subStatPoint();
                 }
 
                 this.printStats(this.remainingPoints); //pinta en pantalla
 
-                if (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER)) {
+                if (this.remainingPoints == 0 && (this.game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR) || this.game.input.keyboard.isDown(Phaser.Keyboard.ENTER))) {
 
                     this.creationCompleted();
                     this.game.input.keyboard.onPressCallback = function () {}; //quita el callback
@@ -947,7 +1199,7 @@ var CreationScene = {
         //this.game.debug.cameraInfo(this.game.camera, 32, 32); //this.skinSelected();
     },
 
-    add1: function () {
+    addStatPoint: function () {
         console.log(this.selectedStat);
         if (this.selectedStat == 'fitness')
             this.fitness++;
@@ -963,7 +1215,7 @@ var CreationScene = {
 
     },
 
-    sub1: function () {
+    subStatPoint: function () {
         console.log(this.selectedStat);
         var sound = this.game.add.audio('select');
         sound.volume = 0.2;
@@ -1012,12 +1264,12 @@ var CreationScene = {
         f.anchor.setTo(0, 1);
         var c = this.game.add.bitmapText(400, 1650, 'arcadeWhiteFont', '' + this.fitness, 30);
         c.anchor.setTo(0, 1);
-        var continueTxt = this.game.add.bitmapText(450, 1750, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
+        var continueTxt = this.game.add.bitmapText(450, 1750, 'arcadeGreenFont', 'Press \'ENTER\' to continue', 20);
     },
 
     printText: function (name) {
         this.game.world.removeAll();
-        var continueTxt = this.game.add.bitmapText(450, 1150, 'arcadeGreenFont', 'Press \'Space\' to continue', 20);
+        var continueTxt = this.game.add.bitmapText(450, 1150, 'arcadeGreenFont', 'Press \'ENTER\' to continue', 20);
         this.txtName = this.game.add.bitmapText(400, 800, 'arcadeGreenFont', 'Choose your name', 40);
         this.centerSprite(this.txtName);
         //console.log(name);
@@ -1066,82 +1318,79 @@ module.exports = CreationScene;
 'use strict';
 
 var GameOverScene = {
-    //CREATE
-    create: function () {
-        //tumba
-        var grave = this.game.add.image(
-            this.game.world.centerX - 100, this.game.world.centerY, 'grave');
-        grave.anchor.setTo(0.5, 0.5);
-        grave.scale.setTo(0.25, 0.25);
+        //CREATE
+        create: function () {
+            //tumba
+            var grave = this.game.add.image(
+                this.game.world.centerX - 100, this.game.world.centerY, 'grave');
+            grave.anchor.setTo(0.5, 0.5);
+            grave.scale.setTo(0.25, 0.25);
 
 
-        this.camera.setPosition(grave.x - 280, grave.y - 300);
+            this.camera.setPosition(grave.x - 280, grave.y - 300);
 
 
-        //texto de la lápida
-        var graveText = this.game.add.bitmapText(grave.x, grave.y + 20, 'arcadeBlackFont',
-        this.game.gameOverData.name + '\n\nYour ' + this.game.gameOverData.numFriends 
-        + ' friends\nwill not forget you.\n\n' + ((this.game.gameOverData.days%30)+1) + '/'+ (Math.max(1,this.game.gameOverData.days%30)%12) +'/19XX', 20);
-        //La fecha de la lápida refleja el día en el que moriste
-        graveText.anchor.setTo(0.5, 1);
-        graveText.align = "center";
+            //texto de la lápida
+            var graveText = this.game.add.bitmapText(grave.x, grave.y + 20, 'arcadeBlackFont',
+                    this.game.gameOverData.name + '\n\nYour ' + this.game.gameOverData.numFriends +
+                    ' friends\nwill not forget you.\n\n' + ((this.game.gameOverData.days % 30) + 1) + '/' + (Math.max(1, Math.trunc(this.game.gameOverData.days / 30 + 1) % 12)) + '/19XX', 20);
+                    //La fecha de la lápida refleja el día en el que moriste
+                    graveText.anchor.setTo(0.5, 1); graveText.align = "center";
 
-        //texto de la derecha
-        var deathCauseString = '';
-        switch (this.game.gameOverData.deathCause) {
-            case 'pee':
-                deathCauseString = "storing too much pee\nin your\nsim's body.";
-                break;
-            case 'hunger':
-                deathCauseString = "starving.";
-                break;
-            case 'fatigue':
-                deathCauseString = " exhaustion.\n\nSleeping at least\n8 hours per day\nis recommended unless\nyou are a\nvideogame developer.";
-                break;
-            case 'money':
-                deathCauseString = "losing all your money,\nwhich in RetrosimCity means DEATH.";
-                break;
-        }
+                    //texto de la derecha
+                    var deathCauseString = '';
+                    switch (this.game.gameOverData.deathCause) {
+                        case 'pee':
+                            deathCauseString = "storing too much pee\nin your\nsim's body.";
+                            break;
+                        case 'hunger':
+                            deathCauseString = "starving.";
+                            break;
+                        case 'fatigue':
+                            deathCauseString = " exhaustion.\n\nSleeping at least\n8 hours per day\nis recommended unless\nyou are a\nvideogame developer.";
+                            break;
+                        case 'money':
+                            deathCauseString = "losing all your money,\nwhich in RetrosimCity\nmeans DEATH.";
+                            break;
+                    }
 
-        var extraText = this.game.add.bitmapText(grave.x + 350, grave.y + 20, 'arcadeWhiteFont',
-            'You died from\n' + deathCauseString +
-            '\n\nYou lived for\n' + this.game.gameOverData.days + ' days' +
-            '\n\nYou had\n' + this.game.gameOverData.money + ' EUROS', 20);
-        extraText.anchor.setTo(0.5, 1);
-        extraText.align = "center";
+                    var extraText = this.game.add.bitmapText(grave.x + 350, grave.y + 20, 'arcadeWhiteFont',
+                        'You died from\n' + deathCauseString +
+                        '\n\nYou lived for\n' + this.game.gameOverData.days + ' days' +
+                        '\n\nYou had\n' + this.game.gameOverData.money + ' EUROS', 20); extraText.anchor.setTo(0.5, 1); extraText.align = "center";
 
-        //Botón para ir al menú
-        var menuButton = this.addButton('nextButton', '',
-            grave.x + 450, grave.y + 225,
-            64, 64,
-            function () {
-                this.game.state.start('menu');
-            });
+                    //Botón para ir al menú
+                    var menuButton = this.addButton('nextButton', '',
+                        grave.x + 450, grave.y + 225,
+                        64, 64,
+                        function () {
+                            this.game.state.start('menu');
+                        });
 
-    },
+                },
 
-    /*render: function(){
-        this.game.debug.spriteInfo(this.hud_mainBox, 32, 32);
-    },*/
+                /*render: function(){
+                    this.game.debug.spriteInfo(this.hud_mainBox, 32, 32);
+                },*/
 
 
-    addButton: function (sprite, string, x, y, w, h, callback) {
-        var button = this.game.add.button(x, y, sprite, callback, this, 2, 1, 0);
+                addButton: function (sprite, string, x, y, w, h, callback) {
+                    var button = this.game.add.button(x, y, sprite, callback, this, 2, 1, 0);
 
-        button.anchor.setTo(0.5, 0.5);
-        button.width = w;
-        button.height = h;
+                    button.anchor.setTo(0.5, 0.5);
+                    button.width = w;
+                    button.height = h;
 
-        var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 20);
-        txt.anchor.setTo(0.5, 0.5);
-        txt.align = "center";
-        txt.fixedToCamera = true;
+                    var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 20);
+                    txt.anchor.setTo(0.5, 0.5);
+                    txt.align = "center";
+                    txt.fixedToCamera = true;
 
-        return button;
-    }
-};
+                    return button;
+                }
+        };
 
-module.exports = GameOverScene;
+        module.exports = GameOverScene;
 },{}],7:[function(require,module,exports){
 'use strict';
 
@@ -1173,12 +1422,19 @@ var PreloaderScene = {
     this.game.load.image('devLogo', 'images/AE.png'); //Logotipo del equipo de des.
     this.game.load.image('background', 'images/background.png');
     this.game.load.image('paredTop', 'images/Pared0_Top.png');
-    for (var i = 1; i <= 10; i++) //Los sprites de los sims
-      this.game.load.image('sim' + i, 'images/sims/Sim' + i + '.png');
-    this.game.load.spritesheet('simAnim', 'images/sims/Sim1spritesheet.png', 20, 32);
+
+    //Sims
+    this.game.numSkins = 11;
+    for (var i = 1; i < this.game.numSkins; i++) //Los sprites de los sims
+      this.game.load.spritesheet('sim' + i, 'images/sims/Sim' + i + '.png', 224, 256, 8);
+
+    this.game.load.spritesheet('sim1anim', 'images/sims/Sim1.png', 224, 256, 8);
+    //this.game.load.spritesheet('sim1up', 'images/sims/Sim1Up.png');
+
     this.game.load.image('arrow', 'images/SimsArrow.png'); //Flecha verde
     //this.game.load.image('trigger', 'images/cross.png'); //Imagen usada para triggers invisibles
-    this.game.load.image('censor', 'images/censorship.png'); //Imagen usada para censurar
+    this.game.load.image('censor', 'images/censorship.png'); //Imagen usada para censurar    
+    this.game.load.image('grave', 'images/GameOverScreen.png');
 
 
     // Imágenes del HUD
@@ -1194,16 +1450,31 @@ var PreloaderScene = {
     this.game.load.image('sleepIcon', 'images/hud/sleepIcon.png'); //icono necesidad: SLEEP
     this.game.load.image('moneyIcon', 'images/hud/coinIcon.png'); //icono del dinero
     this.game.load.image('greenBox', 'images/hud/greenBox.png'); //cuadrado verde usado para las barras de necesidad
-    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png'); 
-    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png'); 
-    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png'); 
-    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png'); 
-    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png'); 
-    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png'); 
-    this.game.load.image('nextButton', 'images/hud/nextButton.png'); 
-    this.game.load.image('prevButton', 'images/hud/prevButton.png'); 
-    this.game.load.image('resetButton', 'images/hud/resetButton.png'); 
-    this.game.load.image('grave', 'images/GameOverScreen.png'); 
+    this.game.load.image('intelligenceIcon', 'images/hud/intelligenceIcon.png');
+    this.game.load.image('fitnessIcon', 'images/hud/fitnessIcon.png');
+    this.game.load.image('charismaIcon', 'images/hud/charismaIcon.png');
+    this.game.load.image('dialogHappy', 'images/hud/dialogBubbleHappy.png');
+    this.game.load.image('dialogAngry', 'images/hud/dialogBubbleAngry.png');
+    this.game.load.image('dialogLove', 'images/hud/dialogBubbleLove.png');
+    this.game.load.image('nextButton', 'images/hud/nextButton.png');
+    this.game.load.image('prevButton', 'images/hud/prevButton.png');
+    this.game.load.image('resetButton', 'images/hud/resetButton.png');
+    this.game.load.image('musicButton', 'images/hud/musicButton.png');
+    this.game.load.image('musicOffButton', 'images/hud/musicOffButton.png');
+    this.game.load.image('buildButton', 'images/hud/buildButton.png');
+    this.game.load.image('jobsButton', 'images/hud/jobsButton.png');
+    this.game.load.image('basicButton', 'images/hud/basicButton.png');
+
+
+    //TILES para el Build Mode
+    this.game.load.image('bed', 'images/tiles/Bed.png');
+    this.game.load.image('fridgeFront', 'images/tiles/FridgeFront.png');
+    this.game.load.image('fridgeSide', 'images/tiles/FridgeSide.png');
+    this.game.load.image('sink', 'images/tiles/Sink.png');
+    this.game.load.image('toilet', 'images/tiles/Toilet.png');
+    this.game.load.image('worktop', 'images/tiles/Worktop.png');
+    this.game.load.image('cross', 'images/cross.png');
+
 
 
     // Tilemaps y tilesets
@@ -1233,6 +1504,16 @@ var PreloaderScene = {
     this.game.load.audio('pay', 'audio/pay.wav');
     this.game.load.audio('eating', 'audio/eating.wav');
     this.game.load.audio('sleeping', 'audio/sleeping.wav');
+    this.game.load.audio('death', 'audio/death.wav');
+    this.game.load.audio('job', 'audio/job.wav');
+    this.game.load.audio('goToJob', 'audio/goToJob.wav');
+    this.game.load.audio('money', 'audio/money.wav');
+    this.game.load.audio('sink', 'audio/sink.wav');
+    this.game.load.audio('chat1', 'audio/chat1.wav');
+    this.game.load.audio('chat2', 'audio/chat2.wav');
+    this.game.load.audio('build', 'audio/build.wav');
+    this.game.load.audio('error', 'audio/error.wav');
+    this.game.load.audio('playSceneMusic', 'audio/Silly Fun.mp3');
   },
 
   create: function () {
@@ -1240,13 +1521,14 @@ var PreloaderScene = {
     this.game.tap = this.game.add.audio('tap');
     this.game.select = this.game.add.audio('select');
     this.game.theme = this.game.add.audio('mainTheme');
+    this.game.playSceneMusic = this.game.add.audio('playSceneMusic');
 
     //Hace que el navegador ignore algunos inputs (flechas y espacio) para evitar mover la ventana jugando
     this.game.input.keyboard.addKeyCapture([
-      Phaser.Keyboard.DOWN, 
-      Phaser.Keyboard.UP, 
-      Phaser.Keyboard.RIGHT, 
-      Phaser.Keyboard.LEFT, 
+      Phaser.Keyboard.DOWN,
+      Phaser.Keyboard.UP,
+      Phaser.Keyboard.RIGHT,
+      Phaser.Keyboard.LEFT,
       Phaser.Keyboard.SPACEBAR
     ]);
 
@@ -1273,10 +1555,12 @@ window.onload = function () {
 
 var MenuScene = {
     create: function () {
+        //Recoge los datos de jugador guardados en localstorage (si los hay)
+        this.playerData = localStorage.getItem("playerData");
         //Reproducir el main theme
         this.game.theme.loop = true; //loop
         this.game.theme.volume = 0.075; //volumen
-        //this.game.theme.play();
+        this.game.theme.play();
 
         var logo = this.game.add.sprite(
             this.game.world.centerX, this.game.world.centerY - 90, 'logo');
@@ -1291,8 +1575,21 @@ var MenuScene = {
                 this.game.tap.volume = 0.1;
                 this.game.tap.play();
                 this.game.state.start('characterCreation');
-            }
-        )
+            }, 40);
+
+        //Mostrar el botón de Continuar si encuentra datos guardados
+        if (this.playerData != undefined) {
+            this.playerParams = JSON.parse(this.playerData);
+
+            addButton(this.game, 'Play again as ' + this.playerParams.name,
+                this.game.world.centerX, this.game.world.centerY + 200,
+                550, 70,
+                function () {
+                    this.game.tap.volume = 0.1;
+                    this.game.tap.play();
+                    this.game.state.start('play');
+                }, 22);
+        }
 
     },
 
@@ -1301,14 +1598,14 @@ var MenuScene = {
     }
 };
 
-function addButton(game, string, x, y, w, h, callback) {
-    var button = game.add.button(x, y, 'paredTop', callback, this, 2, 1, 0);
+function addButton(game, string, x, y, w, h, callback, fontSize) {
+    var button = game.add.button(x, y, 'paredTop', callback, this);
 
     button.anchor.setTo(0.5, 0.5);
     button.width = w;
     button.height = h;
 
-    var txt = game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 40);
+    var txt = game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, fontSize);
     txt.anchor.setTo(0.5, 0.5);
     txt.align = "center";
 }
@@ -1343,11 +1640,24 @@ var PlayScene = {
 
   //CREATE
   create: function () {
+    this.game.theme.stop();
+
+    this.game.playSceneMusic.play(); //Empieza la música de playScene
+    this.game.playSceneMusic.loop = true; //loop
+    this.game.playSceneMusic.volume = 0.055; //volumen
+
+    this.jobSound = this.game.add.audio('job');
+    this.goToJobSound = this.game.add.audio('goToJob');
+    this.moneySound = this.game.add.audio('money');
+    this.paySound = this.game.add.audio('pay'); //PAGAR
+    this.paySound.volume = 0.5;
 
     //Valores iniciales
-    this.game.initialX = this.game.world.centerX, this.game.initialY = 3500;
+    this.atWork = false;
+    this.game.initialX = this.game.world.centerX + 900, this.game.initialY = 3500;
     this.needsRate = 10; //tiempo que tiene que pasar para reducir todas las necesidades (en minutos del juego)
-    this.neighbourSpawnRate = 5;
+    this.sleepingHours = 6;
+    this.neighbourSpawnRate = 15000; //tiempo entre spawn de vecinos en milisegundos
     this.spawningNeighbour = false; //Indica si se está "spawneando" un vecino para no spawnear otro
     var NUM_NEIGHBOURS = 10; //número total de vecinos
     this.maleNames = [ //Array de nombres masculinos
@@ -1382,15 +1692,90 @@ var PlayScene = {
       'Kate Jackson',
       'Mei Ling'
     ];
-    this.timeSpeed = 500; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
+
+
+    
+    //Precios del modo deco.
+    this.game.buildCost = {
+      bed: 200,
+      fridge: 500,
+      sink: 50,
+      toilet: 75,
+      worktop: 50
+    };
+
+
+
+    this.timeSpeed = 50; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
-      day:0,
+      day: 0,
       hour: 12,
       minute: 0
     };
+
     //loop de tiempo
     this.game.time.events.loop(this.timeSpeed, this.updateTimeCounter, this);
+
+    //Loop de spawneo de vecinos
+    this.game.time.events.loop(this.neighbourSpawnRate, this.spawnSim, this);
+
+    //Pago de facturas
+    this.billsArePaid = false;
+    this.billCost = 1000;
+    this.billPaymentRate = 5 //días entre pago de facturas
+      *
+      (this.timeSpeed * 60 * 24); // (this.timeSpeed * 60 * 24) = 1 día de juego
+
+    //Timer de pago de facturas
+    this.billsTimer = this.game.time.create(true);
+    this.billsTimer.start();
+
+    //Trabajos posibles -> nombre, salario, habilidad necesaria, puntos de habilidad necesarios
+    this.jobs = {
+      waiter: {
+        name: 'Bar Waiter/Waitress',
+        wage: 100,
+        skillName: 'none',
+        skillPts: 0
+      },
+      scienceIntern: {
+        name: 'Science Lab Intern',
+        wage: 250,
+        skillName: 'int',
+        skillPts: 5
+      },
+      gymTrainer: {
+        name: 'Gym Trainer',
+        wage: 200,
+        skillName: 'fit',
+        skillPts: 5
+      },
+      hotelEntertainer: {
+        name: 'Hotel Entertainer',
+        wage: 180,
+        skillName: 'cha',
+        skillPts: 5
+      },
+      cernScientist: {
+        name: 'CERN Scientist',
+        wage: 400,
+        skillName: 'int',
+        skillPts: 10
+      },
+      proBodybuilder: {
+        name: 'Professional Bodybuilder',
+        wage: 450,
+        skillName: 'fit',
+        skillPts: 10
+      },
+      rockStar: {
+        name: 'Rock Star',
+        wage: 500,
+        skillName: 'cha',
+        skillPts: 10
+      }
+    };
 
     //Información que se muestra en el hud:
     // 0: NEEDS
@@ -1404,9 +1789,10 @@ var PlayScene = {
     this.game.physics.startSystem(Phaser.Physics.ARCADE);
 
     this.editMode = false;
+    this.inJobsMenu = false;
 
     //Tilemap
-    this.map = new Map(this);
+    this.map = new Map(this.game);
 
     this.map.objectsLayer.debug = this.debug; //debug del tilemap
 
@@ -1418,6 +1804,7 @@ var PlayScene = {
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
 
+    this.map.player = this.player;
     //  VECINOS
     this.neighboursGroup = this.game.add.group();
 
@@ -1430,9 +1817,16 @@ var PlayScene = {
 
     this.createHUD();
 
+    this.spawnSim(); //aparece el primer vecino
+
+
+
+
 
     this.game.input.mouse.capture = true;
+
   },
+
 
   //UPDATE
   update: function () {
@@ -1445,48 +1839,53 @@ var PlayScene = {
     } else
       this.map.setWalls(true);
 
-    //Spawn de vecinos
-    if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
+    //Spawn de vecinos (AHORA SE ENCARGA UN LOOP)
+    /*if (!this.spawningNeighbour && this.timeCounter.minute % this.neighbourSpawnRate == 0) {
       this.spawningNeighbour = true;
       this.spawnSim();
-    }
-
-    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.S)) {
-      console.log(this.player.friends);
     }*/
-    //////////////////////////////
 
-    //Activar el modo edición
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
-      this.editMode = true;
-
+    //Ir al trabajo
+    if (this.timeCounter.hour == 8 && this.player.job.name != 'Unemployed' && !this.atWork) {
+      this.goToWork();
     }
 
-    if (this.editMode && this.game.input.activePointer.leftButton.isDown) {
-      /*this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
-      console.log(this.game.input.mousePointer.x, this.game.input.mousePointer.y);
-      this.furni.fixedToCamera = true;
-      this.furni.scale.setTo(0.25, 0.25);
-      this.furni.anchor.setTo(0.5, 0.5);
-      this.player.money -= 75;*/
-
+    //Pagar las facturas
+    if (this.billsTimer.ms >= this.billPaymentRate) {
+      this.billsTimer.stop();
+      this.billsTimer.start();
+      this.payBills();
     }
+
+    if (this.editMode)
+      this.map.update();
 
     this.updateNeeds();
 
     if (this.player.currentState == 'sleeping') { //Si el jugador está durmiendo, avanza el tiempo 8 horas
-      if(this.timeCounter.hour + 8 > 23)  //si pasa de día al dormir, actualiza timecounter.day
-        this.timeCounter.day++; 
+      if (this.timeCounter.hour + this.sleepingHours > 23) //si pasa de día al dormir, actualiza timecounter.day
+        this.timeCounter.day++;
 
-      this.timeCounter.hour = (this.timeCounter.hour + 8) % 23;
+      this.timeCounter.hour = (this.timeCounter.hour + this.sleepingHours) % 23;
       this.player.currentState = 'waking up'; //para que no siga aumentando en cada update
     } else if (this.player.currentState == 'active')
       this.timeCounterText.setText(this.getTimeText()); //Actualiza el texto del tiempo
-    
-      this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
+    else if (this.player.currentState == "checkingMails") {
+      var daysUntilBill = Math.trunc((this.billPaymentRate - this.billsTimer.ms) / (this.timeSpeed * 60 * 24));
+      var message = "Days until next bill\npayment:\n" +
+        daysUntilBill;
+
+      if (daysUntilBill == 0)
+        message += "\n\nYou will pay you bills soon!"
+
+      this.showMessage(message);
+      this.player.resetState();
+    }
+
+    this.hud_playerMoney.setText(this.player.money); //Actualiza el texto del dinero
 
     //Comprueba si ha perdido
-      this.checkGameOver();
+    this.checkGameOver();
   },
 
   checkGameOver: function () {
@@ -1526,12 +1925,13 @@ var PlayScene = {
     else {
       if (this.timeCounter.hour < 23)
         this.timeCounter.hour++;
-      else{
+      else {
         this.timeCounter.hour = 0;
         this.timeCounter.day++;
       }
       this.timeCounter.minute = 0;
     }
+
   },
 
 
@@ -1541,7 +1941,7 @@ var PlayScene = {
     if (this.debug) {
       this.game.debug.body(this.player);
     }
-    //this.game.debug.spriteInfo(this.hud_mainBox, 32, 80);
+    //this.game.debug.spriteInfo(this.player, 32, 80);
     //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
   },
 
@@ -1598,6 +1998,39 @@ var PlayScene = {
     timer.start();
   },
 
+  payBills: function () {
+    this.paySound.play();
+    this.player.money -= this.billCost;
+    this.player.showExchange(-this.billCost);
+    this.showMessage("You paid your bills.\nYou lost " + this.billCost + " EUROS");
+    this.billsArePaid = true;
+  },
+
+  goToWork: function () {
+    this.goToJobSound.play();
+    this.timeCounter.hour = 15;
+    this.timeCounter.minute = 50;
+    this.atWork = true;
+    this.game.camera.fade(0x000000, 500);
+
+    var auxTimer = this.game.time.create(true);
+    auxTimer.loop(3000, function () {
+      this.player.resetPosition();
+      this.player.money += this.player.job.wage;
+      this.showMessage("You went to work and\nearned " + this.player.job.wage + " EUROS!")
+
+      this.game.camera.resetFX();
+      this.moneySound.play();
+      this.player.showExchange(this.player.job.wage);
+
+      this.atWork = false;
+      auxTimer.stop();
+    }, this);
+    auxTimer.start();
+
+
+  },
+
 
   ////////////////////////////////////////////////////////////
   //                        INTERFAZ                       //
@@ -1646,6 +2079,49 @@ var PlayScene = {
       20);
     this.timeCounterText.align = "left";
     this.timeCounterText.fixedToCamera = true;
+
+    //MUSIC ON/OFF BUTTON
+    var musicButton = this.addButton('musicButton', '', window.innerWidth - this.timeCounter_offset + 60, 120, this.hud_buttonW, this.hud_buttonW, function () {
+      if (this.selectedHUD != 2) {
+        if (this.game.playSceneMusic.isPlaying) {
+          this.game.playSceneMusic.stop();
+          musicButton.loadTexture('musicOffButton');
+        } else {
+          this.game.playSceneMusic.play();
+          musicButton.loadTexture('musicButton');
+        }
+      }
+    });
+    musicButton.fixedToCamera = true;
+    musicButton.scale.setTo(0.075, 0.075);
+
+    //BUILD MODE BUTTON
+    var buildButton = this.addButton('buildButton', '', window.innerWidth - this.timeCounter_offset + 60, 170, this.hud_buttonW, this.hud_buttonW, function () {
+      //this.showMessage("The Build Mode feature\nis currently a\nWORK IN PROGRESS");
+      if (!this.editMode) {
+        this.map.createMarker();
+        this.editMode = true;
+        this.showGroup(this.buildGroup);
+      } else {
+        this.editMode = false;
+        this.hideGroup(this.buildGroup);
+        this.map.quitBuilding();
+      }
+    });
+    buildButton.fixedToCamera = true;
+    buildButton.scale.setTo(0.075, 0.075);
+
+    //JOBS BUTTON
+    this.jobsGroup = this.game.add.group();
+    var jobsButton = this.addButton('jobsButton', '', window.innerWidth - this.timeCounter_offset + 60, 220, this.hud_buttonW, this.hud_buttonW, function () {
+      if (!this.inJobsMenu)
+        this.showJobs();
+      else
+        this.hideJobs();
+    });
+    jobsButton.fixedToCamera = true;
+    jobsButton.scale.setTo(0.075, 0.075);
+
 
     //SUBMENÚS:  NEEDS, YOU, FRIENDS
 
@@ -1837,16 +2313,272 @@ var PlayScene = {
     });
     this.friendsButton.fixedToCamera = true;
 
+
+
+
+
+    ///////////////////////////////////////
+    ///            BUILD MODE          ///
+    /////////////////////////////////////
+
+
+    //group
+    this.buildGroup = this.game.add.group();
+
+
+    var panelW, panelH, panelX, panelY;
+    panelW = window.innerWidth;
+    panelX = 0;
+    panelH = window.innerHeight / 4.75;
+    panelY = window.innerHeight - panelH; //window.innerHeight / 2 - panelH / 2;
+
+    var panel = this.game.add.image(
+      panelX, panelY, 'paredTop');
+    panel.anchor.setTo(0, 0);
+    panel.width = panelW;
+    panel.height = panelH;
+    this.buildGroup.add(panel);
+
+
+
+    var numTiles = 7;
+    var tilesKeys = [
+      'bed',
+      'fridgeFront',
+      'fridgeSide',
+      'sink',
+      'toilet',
+      'worktop',
+      'cross'
+    ];
+
+    var i = 0;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('bed');
+      }, 10));
+    this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+      panelY + 50 + 43,
+      'arcadeBlackFont',
+      this.game.buildCost.bed + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('fridgeFront');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.fridge + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('fridgeSide');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.fridge + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('sink');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.sink + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('toilet');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.toilet + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('worktop');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.worktop + ' EUR', 14));
+    i++;
+
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.editMode = false;
+        this.hideGroup(this.buildGroup);
+        this.map.quitBuilding();
+      }, 10));
+      i++;
+
+
+
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 6,
+        'arcadeBlackFont',
+        'Click in the image,\nthen click in the\nground to place an\nobject.\nClick the red cross\nto quit.\nYou will have\nto move to see\nthe changes.'
+        , 12));
+
+
+    this.buildGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+    });
+
+
     this.hideGroup(this.needsGroup);
     this.hideGroup(this.youGroup);
     this.hideGroup(this.friendsGroup);
     this.hideGroup(this.friendsExtraGroup);
+    this.hideGroup(this.buildGroup);
     this.showActualMenu();
   },
 
   getTimeText: function () {
-    return "Day: " + (this.timeCounter.day + 1) + "\n" + 
-    ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
+    return "Day: " + (this.timeCounter.day + 1) + "\n" +
+      ("0" + this.timeCounter.hour).slice(-2) + ':' + ("0" + this.timeCounter.minute).slice(-2);
+  },
+
+  applyForJob: function (job) {
+    var enoughSkill = false;
+
+    //Comprueba que el jugador tiene suficientes puntos de la habilidad requerida
+    switch (job.skillName) {
+      case 'int':
+        if (this.player.stats.intelligence >= job.skillPts) enoughSkill = true;
+        break;
+      case 'fit':
+        if (this.player.stats.fitness >= job.skillPts) enoughSkill = true;
+        else var skill = 'FITNESS';
+        break;
+      case 'cha':
+        if (this.player.stats.charisma >= job.skillPts) enoughSkill = true;
+        break;
+      default:
+        enoughSkill = true;
+        break;
+    }
+
+    if (enoughSkill) {
+      this.player.job = job;
+      this.hideJobs();
+      this.jobSound.play();
+
+      this.showMessage('You were chosen to\nstart working as a\n' + this.player.job.name + "!");
+    } else {
+      this.hideJobs();
+      this.showMessage("You must improve your\n" + skill + "\n\n(Click in YOU to\ncheck your skills)");
+    }
+  },
+
+  displayJobInfo: function (job, x, y) {
+    var skillIconDim = 32;
+    var skillIconKey = '';
+    switch (job.skillName) {
+      case 'int':
+        skillIconKey = 'intelligenceIcon';
+        break;
+      case 'fit':
+        skillIconKey = 'fitnessIcon';
+        break;
+      case 'cha':
+        skillIconKey = 'charismaIcon';
+        break;
+    }
+
+    var jobNameX = x + skillIconDim + 37;
+
+    if (skillIconKey != '') {
+      var skillIcon = this.game.add.image(
+        x, y, skillIconKey);
+      skillIcon.anchor.setTo(0, 0);
+      skillIcon.width = skillIconDim;
+      skillIcon.height = skillIconDim;
+      this.jobsGroup.add(skillIcon);
+
+      var skillPts = this.game.add.bitmapText(jobNameX - 32, y, 'arcadeBlackFont', job.skillPts, 16);
+      this.jobsGroup.add(skillPts);
+    }
+
+    var jobName = this.game.add.bitmapText(jobNameX + 16, y, 'arcadeBlackFont', job.name + "\nWage: " + job.wage + " EUROS", 16);
+    this.jobsGroup.add(jobName);
+
+    var applyButton = this.addButton('basicButton', 'APPLY', jobNameX + 300, y + 20, skillIconDim + 20, skillIconDim, function () {
+      this.applyForJob(job);
+    }, 10, true);
+    this.jobsGroup.add(applyButton[0]);
+    this.jobsGroup.add(applyButton[1]);
+  },
+
+  //Abre el menú JOBS
+  showJobs: function () {
+    this.inJobsMenu = true;
+
+    var panelW, panelH, panelX, panelY;
+    panelW = window.innerWidth / 1.5;
+    panelX = window.innerWidth / 2 - panelW / 2;
+    panelH = window.innerHeight - window.innerHeight / 8;
+    panelY = 16; //window.innerHeight / 2 - panelH / 2;
+
+    var jobsPanel = this.game.add.image(
+      panelX, panelY, 'hudBox');
+    jobsPanel.anchor.setTo(0, 0);
+    jobsPanel.width = panelW;
+    jobsPanel.height = panelH;
+    this.jobsGroup.add(jobsPanel);
+
+    var yourJobsText = this.game.add.bitmapText(panelX + 16, panelY + 32, 'arcadeBlackFont', "Your job:\n" + this.player.job.name + "\nWage: " + this.player.job.wage + " EUROS", 16);
+    this.jobsGroup.add(yourJobsText);
+
+    var scheduleText = this.game.add.bitmapText(panelX + 300, panelY + 32, 'arcadeBlackFont', "Working hours:\n8:00 - 16:00", 16);
+    this.jobsGroup.add(scheduleText);
+
+    var availableJobsText = this.game.add.bitmapText(panelX + 16, panelY + 128, 'arcadeBlackFont', "Available jobs:", 16);
+    this.jobsGroup.add(availableJobsText);
+
+    var yJobOffset = 50;
+
+    //Mostrar todos los trabajos disponibles
+    var cont = 0;
+    for (var key in this.jobs) {
+      if (this.jobs.hasOwnProperty(key)) {
+        if (this.jobs[key] != this.player.job) {
+          this.displayJobInfo(this.jobs[key], panelX + 16, availableJobsText.y + 24 + yJobOffset * cont);
+          cont++;
+        }
+      }
+    }
+
+
+
+    this.jobsGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+    });
+  },
+
+  //Cierra el menú JOBS
+  hideJobs: function () {
+    this.inJobsMenu = false;
+
+    this.hideGroup(this.jobsGroup);
   },
 
   //deselecciona el submenú actual del hud
@@ -1886,6 +2618,38 @@ var PlayScene = {
         this.friendsGroup.add(txt);
       }
     }
+  },
+
+  showMessage: function (message) {
+    //PANEL
+    var panelW, panelH, panelX, panelY;
+    panelW = window.innerWidth / 3;
+    panelX = window.innerWidth / 2 - panelW / 2;
+    panelH = window.innerHeight / 3;
+    panelY = 16; //window.innerHeight / 2 - panelH / 2;
+
+    var panel = this.game.add.image(
+      panelX, panelY, 'hudBox');
+    panel.anchor.setTo(0, 0);
+    panel.width = panelW;
+    panel.height = panelH;
+    panel.fixedToCamera = true;
+
+    //TEXT
+    var text = this.game.add.bitmapText(panelX + 16, panelY + 32, 'arcadeBlackFont', message, 16);
+    text.fixedToCamera = true;
+
+    var quitText = this.game.add.bitmapText(panelX + panelW / 2, panelY + panelW - 90, 'arcadeBlackFont', '(Click inside to close)', 16);
+    quitText.fixedToCamera = true;
+    quitText.anchor.setTo(0.5, 0.5);
+    quitText.align = "center";
+
+    panel.inputEnabled = true;
+    panel.events.onInputDown.add(function () {
+      panel.destroy();
+      text.destroy();
+      quitText.destroy();
+    });
   },
 
   //Muestra el submenú de NEEDS/YOU/FRIENDS
@@ -1933,9 +2697,11 @@ var PlayScene = {
 
 
   hideGroup: function (group) {
-    group.forEach(function (elem) {
+    /*group.forEach(function (elem) {
       elem.kill();
-    });
+    });*/
+
+    group.callAll('kill');
   },
 
   showGroup: function (group) {
@@ -1945,31 +2711,46 @@ var PlayScene = {
   },
 
   //Crea un botón
-  addButton: function (sprite, string, x, y, w, h, callback) {
+  addButton: function (sprite, string, x, y, w, h, callback, fontSize, returnText) {
+    fontSize = fontSize || 20;
+    returnText = returnText || false;
     var button = this.game.add.button(x, y, sprite, callback, this, 2, 1, 0);
 
     button.anchor.setTo(0.5, 0.5);
     button.width = w;
     button.height = h;
 
-    var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, 20);
+    var txt = this.game.add.bitmapText(button.x, button.y, 'arcadeBlackFont', string, fontSize);
     txt.anchor.setTo(0.5, 0.5);
     txt.align = "center";
     txt.fixedToCamera = true;
 
-    return button;
+    if (returnText)
+      return [button, txt];
+    else
+      return button;
   },
+
+
+
 
   ///////////////////////////////////////
   ///            GAME OVER           ///
   /////////////////////////////////////
   gameOver: function () {
+    if (this.game.playSceneMusic.isPlaying)
+      this.game.playSceneMusic.stop();
+    var deathSound = this.game.add.audio('death');
+    deathSound.volume = 0.5;
+    deathSound.play();
+
+
     this.game.gameOverData.name = this.player.name;
     this.game.gameOverData.numFriends = this.player.numFriends;
     this.game.gameOverData.money = this.player.money;
     this.game.gameOverData.days = this.timeCounter.day;
-    
-    this.game.world.setBounds(0,0,800,600); //Restaura las dimensiones del world(modificadas por el tilemap)
+
+    this.game.world.setBounds(0, 0, 800, 600); //Restaura las dimensiones del world(modificadas por el tilemap)
 
     this.game.state.start('gameOver'); //Empieza gameOverScene
   }
