@@ -77,6 +77,20 @@ var PlayScene = {
       'Kate Jackson',
       'Mei Ling'
     ];
+
+
+    
+    //Precios del modo deco.
+    this.game.buildCost = {
+      bed: 200,
+      fridge: 500,
+      sink: 50,
+      toilet: 75,
+      worktop: 50
+    };
+
+
+
     this.timeSpeed = 50; //La velocidad a la que pasan los minutos del juego (1000 = 1 minuto por segundo)
     //Tiempo del juego
     this.timeCounter = {
@@ -163,7 +177,7 @@ var PlayScene = {
     this.inJobsMenu = false;
 
     //Tilemap
-    this.map = new Map(this);
+    this.map = new Map(this.game);
 
     this.map.objectsLayer.debug = this.debug; //debug del tilemap
 
@@ -175,6 +189,7 @@ var PlayScene = {
     this.map.createTopLayers(); //Crea las capas del tilemap que están sobre el jugador
     this.camera.follow(this.player);
 
+    this.map.player = this.player;
     //  VECINOS
     this.neighboursGroup = this.game.add.group();
 
@@ -190,8 +205,13 @@ var PlayScene = {
     this.spawnSim(); //aparece el primer vecino
 
 
+
+
+
     this.game.input.mouse.capture = true;
+
   },
+
 
   //UPDATE
   update: function () {
@@ -223,20 +243,12 @@ var PlayScene = {
     }
 
     //Activar el modo edición
-    /*if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
-      this.editMode = true;
-
+    if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
+      console.log('e');
     }
 
-    if (this.editMode && this.game.input.activePointer.leftButton.isDown) {
-      this.furni = this.game.add.sprite(this.game.input.mousePointer.x, this.game.input.mousePointer.y, 'furni');
-      console.log(this.game.input.mousePointer.x, this.game.input.mousePointer.y);
-      this.furni.fixedToCamera = true;
-      this.furni.scale.setTo(0.25, 0.25);
-      this.furni.anchor.setTo(0.5, 0.5);
-      this.player.money -= 75;
-
-    }*/
+    if (this.editMode)
+      this.map.update();
 
     this.updateNeeds();
 
@@ -319,7 +331,7 @@ var PlayScene = {
     if (this.debug) {
       this.game.debug.body(this.player);
     }
-    //this.game.debug.spriteInfo(this.hud_mainBox, 32, 80);
+    //this.game.debug.spriteInfo(this.player, 32, 80);
     //this.game.debug.text("x: "+ this.intelligenceText /*+ "   \ny: " + this.intelligenceText.y*/, 32, 32);
   },
 
@@ -380,6 +392,7 @@ var PlayScene = {
     console.log('H??');
     this.paySound.play();
     this.player.money -= this.billCost;
+    this.player.showExchange(-this.billCost);
     this.showMessage("You paid your bills.\nYou lost " + this.billCost + " EUROS");
     this.billsArePaid = true;
   },
@@ -399,6 +412,7 @@ var PlayScene = {
 
       this.game.camera.resetFX();
       this.moneySound.play();
+      this.player.showExchange(this.player.job.wage);
 
       this.atWork = false;
       auxTimer.stop();
@@ -476,7 +490,15 @@ var PlayScene = {
 
     //BUILD MODE BUTTON
     var buildButton = this.addButton('buildButton', '', window.innerWidth - this.timeCounter_offset + 60, 170, this.hud_buttonW, this.hud_buttonW, function () {
-      this.showMessage("The Build Mode feature\nis currently a\nWORK IN PROGRESS");
+      //this.showMessage("The Build Mode feature\nis currently a\nWORK IN PROGRESS");
+      if (!this.editMode) {
+        this.editMode = true;
+        this.showGroup(this.buildGroup);
+      } else {
+        this.editMode = false;
+        this.hideGroup(this.buildGroup);
+        this.map.hideMarker();
+      }
     });
     buildButton.fixedToCamera = true;
     buildButton.scale.setTo(0.075, 0.075);
@@ -683,10 +705,165 @@ var PlayScene = {
     });
     this.friendsButton.fixedToCamera = true;
 
+
+
+
+
+    ///////////////////////////////////////
+    ///            BUILD MODE          ///
+    /////////////////////////////////////
+
+
+    //group
+    this.buildGroup = this.game.add.group();
+
+
+    var panelW, panelH, panelX, panelY;
+    panelW = window.innerWidth;
+    panelX = 0;
+    panelH = window.innerHeight / 4.75;
+    panelY = window.innerHeight - panelH; //window.innerHeight / 2 - panelH / 2;
+
+    var panel = this.game.add.image(
+      panelX, panelY, 'paredTop');
+    panel.anchor.setTo(0, 0);
+    panel.width = panelW;
+    panel.height = panelH;
+    this.buildGroup.add(panel);
+
+
+
+    var numTiles = 7;
+    var tilesKeys = [
+      'bed',
+      'fridgeFront',
+      'fridgeSide',
+      'sink',
+      'toilet',
+      'worktop',
+      'cross'
+    ];
+
+    var i = 0;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('bed');
+      }, 10));
+    this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+      panelY + 50 + 43,
+      'arcadeBlackFont',
+      this.game.buildCost.bed + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('fridgeFront');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.fridge + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('fridgeSide');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.fridge + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('sink');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.sink + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('toilet');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.toilet + ' EUR', 14));
+    i++;
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.map.tileSelected('worktop');
+      }, 10));
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 50 + 43,
+        'arcadeBlackFont',
+        this.game.buildCost.worktop + ' EUR', 14));
+    i++;
+
+
+    this.buildGroup.add(this.addButton(tilesKeys[i], '',
+      panelX + 70 + i * 84, panelY + 50, 64, 64,
+      function () {
+        this.editMode = false;
+        this.hideGroup(this.buildGroup);
+        this.map.hideMarker();
+      }, 10));
+
+
+
+
+    /*for (var i = 0; i < numTiles; i++) {  //No conseguí que funcionara así por el parámetro que hay que pasar a tileSelected()
+      var key = tilesKeys[i];
+      var callback;
+      console.log
+
+      if (key != 'cross') {
+        callback = function () {
+          this.map.tileSelected(this.key);
+        };
+      } else {
+        callback = function () {
+          this.editMode = false;
+          this.hideGroup(this.buildGroup);
+          this.map.hideMarker();
+        }
+      }
+
+      var tileButton = this.addButton(key, '', panelX + 70 + i * 84, panelY + 50, 64, 64, callback, 10);
+      this.buildGroup.add(tileButton);
+    }*/
+
+
+
+
+
+
+    this.buildGroup.forEach(function (elem) {
+      elem.fixedToCamera = true;
+    });
+
+
+
+
+
+
     this.hideGroup(this.needsGroup);
     this.hideGroup(this.youGroup);
     this.hideGroup(this.friendsGroup);
     this.hideGroup(this.friendsExtraGroup);
+    this.hideGroup(this.buildGroup);
     this.showActualMenu();
   },
 
@@ -968,6 +1145,9 @@ var PlayScene = {
     else
       return button;
   },
+
+
+
 
   ///////////////////////////////////////
   ///            GAME OVER           ///

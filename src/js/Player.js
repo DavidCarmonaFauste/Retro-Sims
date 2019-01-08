@@ -208,6 +208,10 @@ Player.prototype.resetState = function () {
   this.currentState = 'active';
 }
 
+Player.prototype.resetState = function () {
+  this.currentState = 'active';
+}
+
 Player.prototype.move = function () {
   this.body.velocity.x = 0;
   this.body.velocity.y = 0;
@@ -346,19 +350,24 @@ Player.prototype.showExchange = function (value) {
 
   var x = 100 + 16 * this.money.toString().length;
   var y = 32;
-  this.exchangeText;
+  var exchangeText;
 
   if (value > 0) { //INGRESO
-    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
+    exchangeText = this.game.add.bitmapText(x, y, 'arcadeGreenFont', '+ ' + value, 20);
   } else { //GASTO
-    this.exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
+    exchangeText = this.game.add.bitmapText(x, y, 'arcadeRedFont', '- ' + Math.abs(value), 20);
   }
-  this.exchangeText.align = "left";
-  this.exchangeText.fixedToCamera = true;
+  exchangeText.align = "left";
+  exchangeText.fixedToCamera = true;
 
-  this.exchangeTimer = this.game.time.create(true);
-  this.exchangeTimer.start();
 
+  var timer = this.game.time.create(false);
+  timer.loop(2000, function () {
+    exchangeText.visible = false;
+    
+    timer.stop();
+  }, this);
+  timer.start();
 
 
 }

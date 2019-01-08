@@ -65,11 +65,22 @@ var PreloaderScene = {
     this.game.load.image('nextButton', 'images/hud/nextButton.png');
     this.game.load.image('prevButton', 'images/hud/prevButton.png');
     this.game.load.image('resetButton', 'images/hud/resetButton.png');
-    this.game.load.image('musicButton', 'images//hud/musicButton.png');
-    this.game.load.image('musicOffButton', 'images//hud/musicOffButton.png');
-    this.game.load.image('buildButton', 'images//hud/buildButton.png');
-    this.game.load.image('jobsButton', 'images//hud/jobsButton.png');
-    this.game.load.image('basicButton', 'images//hud/basicButton.png');
+    this.game.load.image('musicButton', 'images/hud/musicButton.png');
+    this.game.load.image('musicOffButton', 'images/hud/musicOffButton.png');
+    this.game.load.image('buildButton', 'images/hud/buildButton.png');
+    this.game.load.image('jobsButton', 'images/hud/jobsButton.png');
+    this.game.load.image('basicButton', 'images/hud/basicButton.png');
+
+
+    //TILES para el Build Mode
+    this.game.load.image('bed', 'images/tiles/Bed.png');
+    this.game.load.image('fridgeFront', 'images/tiles/FridgeFront.png');
+    this.game.load.image('fridgeSide', 'images/tiles/FridgeSide.png');
+    this.game.load.image('sink', 'images/tiles/Sink.png');
+    this.game.load.image('toilet', 'images/tiles/Toilet.png');
+    this.game.load.image('worktop', 'images/tiles/Worktop.png');
+    this.game.load.image('cross', 'images/cross.png');
+
 
 
     // Tilemaps y tilesets
@@ -106,6 +117,8 @@ var PreloaderScene = {
     this.game.load.audio('sink', 'audio/sink.wav');
     this.game.load.audio('chat1', 'audio/chat1.wav');
     this.game.load.audio('chat2', 'audio/chat2.wav');
+    this.game.load.audio('build', 'audio/build.wav');
+    this.game.load.audio('error', 'audio/error.wav');
     this.game.load.audio('playSceneMusic', 'audio/Silly Fun.mp3');
   },
 
