@@ -76,9 +76,9 @@ var PreloaderScene = {
     this.game.load.image('bed', 'images/tiles/Bed.png');
     this.game.load.image('fridgeFront', 'images/tiles/FridgeFront.png');
     this.game.load.image('fridgeSide', 'images/tiles/FridgeSide.png');
-    this.game.load.image('sink', 'images/tiles/Sink.png');
+    this.game.load.image('sink', 'images/tiles/sink.png');
     this.game.load.image('toilet', 'images/tiles/Toilet.png');
-    this.game.load.image('worktop', 'images/tiles/Worktop.png');
+    this.game.load.image('worktop', 'images/tiles/worktop.png');
     this.game.load.image('cross', 'images/cross.png');
 
 
