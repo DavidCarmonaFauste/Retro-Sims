@@ -242,11 +242,6 @@ var PlayScene = {
       this.payBills();
     }
 
-    //Activar el modo edición
-    if (this.game.input.keyboard.isDown(Phaser.Keyboard.E)) {
-      console.log('e');
-    }
-
     if (this.editMode)
       this.map.update();
 
@@ -389,7 +384,6 @@ var PlayScene = {
   },
 
   payBills: function () {
-    console.log('H??');
     this.paySound.play();
     this.player.money -= this.billCost;
     this.player.showExchange(-this.billCost);
@@ -477,11 +471,9 @@ var PlayScene = {
         if (this.game.playSceneMusic.isPlaying) {
           this.game.playSceneMusic.stop();
           musicButton.loadTexture('musicOffButton');
-          console.log('o');
         } else {
           this.game.playSceneMusic.play();
           musicButton.loadTexture('musicButton');
-          console.log('A');
         }
       }
     });
@@ -492,12 +484,13 @@ var PlayScene = {
     var buildButton = this.addButton('buildButton', '', window.innerWidth - this.timeCounter_offset + 60, 170, this.hud_buttonW, this.hud_buttonW, function () {
       //this.showMessage("The Build Mode feature\nis currently a\nWORK IN PROGRESS");
       if (!this.editMode) {
+        this.map.createMarker();
         this.editMode = true;
         this.showGroup(this.buildGroup);
       } else {
         this.editMode = false;
         this.hideGroup(this.buildGroup);
-        this.map.hideMarker();
+        this.map.quitBuilding();
       }
     });
     buildButton.fixedToCamera = true;
@@ -818,45 +811,22 @@ var PlayScene = {
       function () {
         this.editMode = false;
         this.hideGroup(this.buildGroup);
-        this.map.hideMarker();
+        this.map.quitBuilding();
       }, 10));
+      i++;
 
 
 
-
-    /*for (var i = 0; i < numTiles; i++) {  //No conseguí que funcionara así por el parámetro que hay que pasar a tileSelected()
-      var key = tilesKeys[i];
-      var callback;
-      console.log
-
-      if (key != 'cross') {
-        callback = function () {
-          this.map.tileSelected(this.key);
-        };
-      } else {
-        callback = function () {
-          this.editMode = false;
-          this.hideGroup(this.buildGroup);
-          this.map.hideMarker();
-        }
-      }
-
-      var tileButton = this.addButton(key, '', panelX + 70 + i * 84, panelY + 50, 64, 64, callback, 10);
-      this.buildGroup.add(tileButton);
-    }*/
-
-
-
-
+      this.buildGroup.add(this.game.add.bitmapText(panelX + 32 + i * 84,
+        panelY + 6,
+        'arcadeBlackFont',
+        'Click in the image,\nthen click in the\nground to place an\nobject.\nClick the red cross\nto quit.\nYou will have\nto move to see\nthe changes.'
+        , 12));
 
 
     this.buildGroup.forEach(function (elem) {
       elem.fixedToCamera = true;
     });
-
-
-
-
 
 
     this.hideGroup(this.needsGroup);

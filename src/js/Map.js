@@ -40,12 +40,7 @@ function Map(game, player) {
     //game.physics.enable(this.doorTrigger, Phaser.Physics.ARCADE);
 
 
-    this.marker = this.game.add.image(
-
-        0, 0, 'hudBox'
-    );
-    this.marker.width = 64;
-    this.marker.height = 64;
+    this.createMarker();
 
     this.buildSound = this.game.add.audio('build');
     this.errorSound = this.game.add.audio('error');
@@ -56,14 +51,18 @@ Map.prototype.update = function () {
     var currentTile = this.map.getTile(this.objectsLayer.getTileX(this.game.input.activePointer.worldX),
         this.objectsLayer.getTileY(this.game.input.activePointer.worldY),
         this.objectsLayer, true);
+    var currentWallTile = this.map.getTile(this.groundWallLayer.getTileX(this.game.input.activePointer.worldX),
+        this.groundWallLayer.getTileY(this.game.input.activePointer.worldY),
+        this.groundWallLayer, true);
 
 
     this.marker.x = roundFloorToInt(this.game.input.activePointer.worldX, 64);
     this.marker.y = roundFloorToInt(this.game.input.activePointer.worldY, 64);
 
-    //console.log(this.marker.x + '->' + currentTile.x);
-    console.log(currentTile.index);
-    if (this.game.input.mousePointer.isDown && this.selectedTileIndex != -1) {
+    if (currentWallTile.index == -1 &&
+         this.isInside(this.marker.x, this.marker.y) &&
+     this.game.input.mousePointer.isDown &&
+      this.selectedTileIndex != -1) {
         this.placeTile(currentTile);
     }
 }
@@ -150,6 +149,10 @@ Map.prototype.placeTile = function (tile) {
             tile.setCollision(true, true, true, true);
             this.player.money -= cost;
             this.player.showExchange(-cost);
+
+            this.selectedTileIndex = -1;
+            this.quitBuilding();
+            this.createMarker();
         }
     }
 }
@@ -181,7 +184,6 @@ Map.prototype.getTileType = function (player) {
         this.objectsLayer);
 
     if (this.tile != null) {
-        //console.log(player.x + ", " + player.y + ": " + this.tile.index);
 
         var type = "";
 
@@ -221,8 +223,19 @@ Map.prototype.getTileType = function (player) {
 };
 
 
-Map.prototype.hideMarker = function () {
+Map.prototype.quitBuilding = function () {
     this.marker.kill();
+    this.selectedTileIndex = -1;
+}
+
+
+Map.prototype.createMarker = function () {
+    this.marker = this.game.add.image(
+
+        0, 0, 'hudBox'
+    );
+    this.marker.width = 64;
+    this.marker.height = 64;
 }
 
 
@@ -259,7 +272,6 @@ Map.prototype.tileSelected = function (tileName) {
     this.marker.loadTexture(tileName);
     this.marker.width = 64;
     this.marker.height = 64;
-    console.log(this.selectedTileIndex);
 
 }
 
@@ -289,7 +301,6 @@ Map.prototype.setWalls = function (active) {
 
 Map.prototype.editMode = function () {
     this.marker.revive();
-    console.log('Entered edit mode');
 };
 
 //FUNCIONES
